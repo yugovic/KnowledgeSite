@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Content Gallery</title>
+    
+    <!-- External Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/modals.css">
+    <link rel="stylesheet" href="css/profile.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header" id="main-header">
+            <h1 id="page-title">AI Content Gallery</h1>
+            <p id="page-description">AIと共創することカタチにできたコンテンツを紹介しています。</p>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="nav-tabs">
+            <a href="#gallery" class="nav-tab active">Gallery</a>
+            <a href="#collections" class="nav-tab">Collections</a>
+            <a href="#directory" class="nav-tab">Directory</a>
+            <a href="#upload" class="nav-tab" id="submit-tab">Submit</a>
+        </nav>
+
+        <!-- Upload Section -->
+        <div class="upload-section" id="upload-section" style="display: none;">
+            <h2>新しいコンテンツを投稿</h2>
+            <p class="subtitle">あなたのAI作品を共有して、他のクリエイターにインスピレーションを与えましょう。</p>
+            
+            <form id="contentForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="title">プロジェクト名</label>
+                        <input type="text" id="title" name="title" required placeholder="プロジェクトのタイトルを入力">
+                    </div>
+                    <div class="form-group">
+                        <label for="url">プロジェクトURL（任意）</label>
+                        <input type="url" id="url" name="url" placeholder="https://example.com（省略可能）">
+                    </div>
+                    <div class="form-group" id="description-group">
+                        <label for="description">説明</label>
+                        <textarea id="description" name="description" rows="4" required placeholder="プロジェクトの詳細な説明を入力してください"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="category">ジャンル</label>
+                        <input type="text" id="category" name="category" placeholder="例：AI, Web Design, アプリ開発（省略可能）">
+                    </div>
+                </div>
+                
+                <div class="form-group" id="back-message-group" style="display: none;">
+                    <label for="backMessage">裏面メッセージ</label>
+                    <textarea id="backMessage" name="backMessage" rows="6" placeholder="カードの裏面に表示されるメッセージ（詳細情報、実現方法など）"></textarea>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group image-upload">
+                        <label for="image">サムネイル画像（任意）</label>
+                        <div class="upload-area" id="uploadArea">
+                            <p>画像をドラッグ&ドロップするか、クリックして選択してください<br><small>※画像がない場合はプレースホルダーが表示されます</small></p>
+                            <input type="file" id="image" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn">投稿する</button>
+            </form>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>アップロード中...</p>
+        </div>
+
+        <!-- Gallery Header -->
+        <div class="gallery-header">
+            <div>
+                <h2 class="gallery-title" id="galleryTitle">Latest</h2>
+                <p class="gallery-subtitle" id="gallerySubtitle">最新のAIコンテンツを探索する</p>
+            </div>
+        </div>
+
+        <!-- Gallery -->
+        <div class="gallery" id="gallery">
+            <!-- コンテンツカードがここに動的に追加されます -->
+        </div>
+        
+        <!-- Edit Gallery -->
+        <div class="edit-gallery" id="editGallery" style="display: none;">
+            <!-- 編集用のコンパクトなギャラリーがここに表示されます -->
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="auth-modal" style="display: none;">
+        <div class="auth-modal-content">
+            <div class="auth-modal-header">
+                <h3>🔒 ログインが必要です</h3>
+                <p>このページにアクセスするにはログインが必要です</p>
+            </div>
+            <div class="auth-modal-body">
+                <div class="auth-form">
+                    <input type="email" id="emailInput" placeholder="メールアドレスを入力してください" required>
+                    <input type="password" id="passwordInput" placeholder="パスワードを入力してください" required>
+                    <div class="auth-modal-buttons">
+                        <button id="loginSubmit" class="auth-btn primary">ログイン</button>
+                        <button id="authCancel" class="auth-btn secondary">キャンセル</button>
+                    </div>
+                    <div class="auth-toggle">
+                        <p>アカウントをお持ちでない場合は <a href="#" id="showSignup">新規登録</a></p>
+                    </div>
+                </div>
+                <div class="signup-form" style="display: none;">
+                    <input type="email" id="signupEmailInput" placeholder="メールアドレスを入力してください" required>
+                    <input type="password" id="signupPasswordInput" placeholder="パスワードを入力してください（6文字以上）" required>
+                    <input type="password" id="confirmPasswordInput" placeholder="パスワードを再入力してください" required>
+                    <div class="auth-modal-buttons">
+                        <button id="signupSubmit" class="auth-btn primary">新規登録</button>
+                        <button id="signupCancel" class="auth-btn secondary">キャンセル</button>
+                    </div>
+                    <div class="auth-toggle">
+                        <p>すでにアカウントをお持ちの場合は <a href="#" id="showLogin">ログイン</a></p>
+                    </div>
+                </div>
+                <div id="authError" class="auth-error" style="display: none;"></div>
+                <div id="authSuccess" class="auth-success" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">コンテンツを編集</h3>
+                <span class="close" id="closeModal">&times;</span>
+            </div>
+            <form id="editForm">
+                <input type="hidden" id="editContentId">
+                <div class="modal-form-grid">
+                    <div class="form-group">
+                        <label for="editTitle">プロジェクト名</label>
+                        <input type="text" id="editTitle" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUrl">プロジェクトURL（任意）</label>
+                        <input type="url" id="editUrl" name="url" placeholder="https://example.com（省略可能）">
+                    </div>
+                    <div class="form-group">
+                        <label for="editCategory">ジャンル</label>
+                        <input type="text" id="editCategory" name="category" placeholder="例：AI, Web Design, アプリ開発（省略可能）">
+                    </div>
+                    <div class="form-group">
+                        <label for="editDescription">説明</label>
+                        <textarea id="editDescription" name="description" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group" style="display: none;">
+                        <label for="editBackMessage">裏面メッセージ</label>
+                        <textarea id="editBackMessage" name="backMessage" rows="6" placeholder="カードの裏面に表示されるメッセージを入力してください"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="editImage">サムネイル画像（任意）</label>
+                        <div class="modal-upload-area" id="editUploadArea">
+                            <p>新しい画像をアップロードする場合はクリックしてください<br><small>※削除する場合は画像なしで更新してください</small></p>
+                            <input type="file" id="editImage" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="modal-btn modal-btn-secondary" id="cancelEdit">キャンセル</button>
+                    <button type="button" class="modal-btn modal-btn-danger" id="deleteContent">削除</button>
+                    <button type="submit" class="modal-btn modal-btn-primary">更新</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Floating Navigation -->
+    <nav class="floating-nav">
+        <div class="floating-nav-logo">W.</div>
+        <a href="#" class="floating-nav-item active" data-page="gallery">Gallery</a>
+        <a href="#" class="floating-nav-item" data-page="ai-knowledge">AI Knowledge</a>
+        <a href="#" class="floating-nav-item" data-page="collections">Collections</a>
+        <a href="#" class="floating-nav-item" data-page="myself">Myself</a>
+        <a href="#" class="floating-nav-cta" data-page="main">Main</a>
+    </nav>
+
+    <!-- JavaScript Files -->
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/gallery.js"></script>
+    <script src="js/upload.js"></script>
+    <script src="js/modal.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,3232 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Content Gallery</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #000;
+            --secondary-color: #fff;
+            --accent-color: #ff6b00;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666;
+            --text-light: #999;
+            --border-color: #e6e6e6;
+            --hover-bg: #f8f8f8;
+            --shadow: 0 2px 20px rgba(0,0,0,0.05);
+            --shadow-hover: 0 8px 40px rgba(0,0,0,0.12);
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f6f6f6;
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        .header {
+            padding: 60px 0 40px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 60px;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            font-size: 18px;
+            color: var(--text-secondary);
+            font-weight: 400;
+            max-width: 600px;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .nav-tab {
+            padding: 16px 0;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-light);
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--accent-color);
+        }
+
+        .nav-tab:hover {
+            color: var(--text-primary);
+        }
+
+        /* Upload Section */
+        .upload-section {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 40px;
+            margin-bottom: 60px;
+            box-shadow: var(--shadow);
+        }
+
+        .upload-header {
+            margin-bottom: 24px;
+        }
+
+        .upload-section h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .upload-section .subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .form-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 32px;
+        }
+        
+        .form-tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .form-tab.active {
+            color: var(--text-primary);
+            border-bottom-color: var(--accent-color);
+        }
+        
+        .form-tab:hover {
+            color: var(--text-primary);
+        }
+        
+        .content-selector {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+            margin-top: 8px;
+        }
+        
+        .form-buttons {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .delete-btn {
+            background: #ff3b30;
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .delete-btn:hover {
+            background: #e02d22;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background-color: #ffffff;
+            margin: 5% auto;
+            padding: 40px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .close {
+            color: var(--text-light);
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+        
+        .close:hover {
+            color: var(--text-primary);
+        }
+        
+        .modal-form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: flex-end;
+        }
+        
+        .modal-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .modal-btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .modal-btn-primary:hover {
+            background: #333;
+        }
+        
+        .modal-btn-danger {
+            background: #ff3b30;
+            color: white;
+        }
+        
+        .modal-btn-danger:hover {
+            background: #e02d22;
+        }
+        
+        .modal-btn-secondary {
+            background: #f8f8f8;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .modal-btn-secondary:hover {
+            background: #e8e8e8;
+        }
+        
+        .modal-upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #fafafa;
+        }
+        
+        .modal-upload-area:hover {
+            border-color: var(--accent-color);
+            background: #f0f0f0;
+        }
+        
+        .current-image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        
+        .no-image-placeholder {
+            width: 100%;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            border: 2px dashed #e9ecef;
+            border-radius: 6px;
+            color: #6c757d;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .edit-card-image.no-image {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            border: 2px dashed #e9ecef;
+            color: #6c757d;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        
+        #back-message-group {
+            margin: 24px 0;
+            width: 100%;
+        }
+        
+        #back-message-group textarea {
+            height: 150px;
+            resize: vertical;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        #description-group {
+            grid-column: 1 / -1;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group textarea {
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            background: var(--secondary-color);
+            resize: vertical;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .image-upload {
+            grid-column: span 2;
+        }
+        
+
+
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 4px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #fafafa;
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent-color);
+            background: #f0f0f0;
+        }
+
+        .upload-area.dragover {
+            border-color: var(--accent-color);
+            background: #f0f0f0;
+        }
+
+        .submit-btn {
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            border: none;
+            padding: 16px 32px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .submit-btn:hover {
+            background: #333;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* Gallery */
+        .gallery-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .gallery-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .gallery-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 32px;
+            margin-bottom: 60px;
+        }
+        
+        .edit-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 60px;
+        }
+        
+        .edit-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+        }
+        
+        .edit-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        .edit-card-image {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            background: #f5f5f5;
+        }
+        
+        .edit-card-content {
+            padding: 12px;
+        }
+        
+        .edit-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .content-card-container {
+            position: relative;
+            height: 450px; /* カードの高さを調整 */
+            perspective: 1000px;
+            margin-bottom: 20px;
+        }
+        
+        .content-card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+
+
+        /* カードフリップのアニメーションはGSAPで制御するため、
+           静的なCSSは削除して、GSAPでのtransform制御に任せる */
+        
+        .content-card:hover:not(.flipped) {
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* フロント面のホバーエフェクト */
+        .content-card:hover:not(.flipped) {
+            transform: translateY(-8px) scale(1.01);
+        }
+        
+        .content-card:hover:not(.flipped) .card-face:first-child {
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+        }
+        
+        /* 前面 */
+        .card-face:first-child {
+            z-index: 2;
+            transform: rotateY(0deg);
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            background: white;
+            color: var(--text-primary);
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* フリップ状態 */
+        .content-card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-back h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .card-back p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            white-space: pre-line; /* 改行を保持 */
+            padding: 0 20px;
+        }
+
+        .card-back .back-icon {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: var(--text-light);
+        }
+        
+        /* コレクションスタイル */
+        .collections-container {
+            padding: 20px 0;
+        }
+        
+        .collections-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+        
+        .collections-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .collections-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .add-collection-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .add-collection-btn:hover {
+            background: #333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .collections-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        
+        /* 空の状態のスタイル */
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 80px 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 2px dashed #e9ecef;
+        }
+        
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: var(--text-light);
+        }
+        
+        .empty-state h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        
+        .empty-state p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        /* モーダルスタイル */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+            position: relative;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+        
+        .close-btn:hover {
+            color: var(--text-primary);
+        }
+        
+        .modal-content h2 {
+            margin-top: 0;
+            margin-bottom: 24px;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        /* 画像プレビュー */
+        .image-preview {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 16px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* 認証モーダルのスタイル */
+        .auth-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .auth-modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 0;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        .auth-modal-header {
+            padding: 24px 24px 16px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+        }
+
+        .auth-modal-header h3 {
+            margin: 0 0 8px;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .auth-modal-header p {
+            margin: 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .auth-modal-body {
+            padding: 24px;
+        }
+
+        .auth-form input, .signup-form input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 16px;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .auth-form input:focus, .signup-form input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .auth-modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .auth-btn {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .auth-btn.primary {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .auth-btn.primary:hover {
+            background: #333;
+            transform: translateY(-1px);
+        }
+
+        .auth-btn.secondary {
+            background: #f8f9fa;
+            color: var(--text-secondary);
+            border: 1px solid #e9ecef;
+        }
+
+        .auth-btn.secondary:hover {
+            background: #e9ecef;
+        }
+
+        .auth-toggle {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .auth-toggle p {
+            margin: 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .auth-toggle a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .auth-toggle a:hover {
+            text-decoration: underline;
+        }
+
+        .auth-error {
+            color: #dc3545;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 12px;
+            padding: 8px;
+            background: #f8d7da;
+            border-radius: 4px;
+        }
+
+        .auth-success {
+            color: #155724;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 12px;
+            padding: 8px;
+            background: #d4edda;
+            border-radius: 4px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .card-image {
+            width: 100%;
+            height: 240px;
+            object-fit: cover;
+            background: #f5f5f5;
+            transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        
+        .card-image.no-image {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            border: 2px dashed #e9ecef;
+            color: #6c757d;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .content-card:hover .card-image:not(.no-image) {
+            transform: scale(1.05);
+        }
+
+        .card-content {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            height: calc(100% - 240px); /* カードの高さから画像の高さを引いた値 */
+            justify-content: space-between;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .card-category {
+            font-size: 12px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-score {
+            font-size: 12px;
+            color: var(--text-light);
+            text-align: right;
+        }
+
+        .card-description {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+            margin-top: 12px;
+            flex-grow: 1;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            max-height: 4.8em; /* 3行分の高さを固定（1.6em × 3） */
+            white-space: pre-line; /* 改行を保持 */
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+
+        .card-link {
+            display: inline-flex;
+            align-items: center;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.2s ease;
+        }
+
+        .card-link:hover {
+            color: var(--accent-color);
+        }
+
+        .card-date {
+            font-size: 12px;
+            color: var(--text-light);
+            padding-top: 8px;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border-color);
+            border-top: 2px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        /* Vote Button */
+        .vote-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .vote-btn:hover {
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            border-color: var(--primary-color);
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 16px;
+            }
+            
+            .header h1 {
+                font-size: 32px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .image-upload {
+                grid-column: span 1;
+            }
+            
+            .gallery {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-tabs {
+                gap: 24px;
+                flex-wrap: wrap;
+            }
+            
+            .gallery-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .floating-nav {
+                bottom: 12px;
+                left: 12px;
+                right: 12px;
+                transform: none;
+                padding: 6px 10px;
+                gap: 6px;
+            }
+            
+            .floating-nav-item {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            
+            .floating-nav-logo {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+            
+            .floating-nav-cta {
+                padding: 6px 16px;
+                font-size: 12px;
+            }
+        }
+
+        /* Animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+
+        /* Floating Navigation Bar */
+        .floating-nav {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(51, 51, 51, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1000;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .floating-nav-item {
+            padding: 8px 14px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .floating-nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .floating-nav-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        .floating-nav-logo {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            margin-right: 4px;
+        }
+
+        .floating-nav-cta {
+            background: rgba(255, 255, 255, 0.9);
+            color: #000;
+            padding: 8px 20px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            margin-left: 6px;
+        }
+
+        .floating-nav-cta:hover {
+            background: white;
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .floating-nav {
+                bottom: 16px;
+                left: 16px;
+                right: 16px;
+                transform: none;
+                padding: 8px 12px;
+                gap: 8px;
+            }
+            
+            .floating-nav-item {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+            
+            .floating-nav-logo {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+            
+            .floating-nav-cta {
+                padding: 10px 20px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header" id="main-header">
+            <h1 id="page-title">AI Content Gallery</h1>
+            <p id="page-description">AIと共創することカタチにできたコンテンツを紹介しています。</p>
+        </div>
+
+        <nav class="nav-tabs">
+            <a href="#gallery" class="nav-tab active">Gallery</a>
+            <a href="#collections" class="nav-tab">Collections</a>
+            <a href="#directory" class="nav-tab">Directory</a>
+            <a href="#upload" class="nav-tab" id="submit-tab">Submit</a>
+        </nav>
+
+        <!-- ログイン認証モーダル -->
+        <div id="authModal" class="auth-modal" style="display: none;">
+            <div class="auth-modal-content">
+                <div class="auth-modal-header">
+                    <h3>🔒 ログインが必要です</h3>
+                    <p>このページにアクセスするにはログインが必要です</p>
+                </div>
+                <div class="auth-modal-body">
+                    <div class="auth-form">
+                        <input type="email" id="emailInput" placeholder="メールアドレスを入力してください" required>
+                        <input type="password" id="passwordInput" placeholder="パスワードを入力してください" required>
+                        <div class="auth-modal-buttons">
+                            <button id="loginSubmit" class="auth-btn primary">ログイン</button>
+                            <button id="authCancel" class="auth-btn secondary">キャンセル</button>
+                        </div>
+                        <div class="auth-toggle">
+                            <p>アカウントをお持ちでない場合は <a href="#" id="showSignup">新規登録</a></p>
+                        </div>
+                    </div>
+                    <div class="signup-form" style="display: none;">
+                        <input type="email" id="signupEmailInput" placeholder="メールアドレスを入力してください" required>
+                        <input type="password" id="signupPasswordInput" placeholder="パスワードを入力してください（6文字以上）" required>
+                        <input type="password" id="confirmPasswordInput" placeholder="パスワードを再入力してください" required>
+                        <div class="auth-modal-buttons">
+                            <button id="signupSubmit" class="auth-btn primary">新規登録</button>
+                            <button id="signupCancel" class="auth-btn secondary">キャンセル</button>
+                        </div>
+                        <div class="auth-toggle">
+                            <p>すでにアカウントをお持ちの場合は <a href="#" id="showLogin">ログイン</a></p>
+                        </div>
+                    </div>
+                    <div id="authError" class="auth-error" style="display: none;"></div>
+                    <div id="authSuccess" class="auth-success" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="upload-section" id="upload-section" style="display: none;">
+            <h2>新しいコンテンツを投稿</h2>
+            <p class="subtitle">あなたのAI作品を共有して、他のクリエイターにインスピレーションを与えましょう。</p>
+            
+            <form id="contentForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="title">プロジェクト名</label>
+                        <input type="text" id="title" name="title" required placeholder="プロジェクトのタイトルを入力">
+                    </div>
+                    <div class="form-group" id="url-group">
+                        <label for="url">プロジェクトURL</label>
+                        <input type="url" id="url" name="url" placeholder="https://example.com">
+                    </div>
+                    <div class="form-group" id="description-group">
+                        <label for="description">説明</label>
+                        <textarea id="description" name="description" rows="4" required placeholder="プロジェクトの詳細な説明を入力してください"></textarea>
+                    </div>
+                    <div class="form-group" id="category-group">
+                        <label for="category">ジャンル</label>
+                        <input type="text" id="category" name="category" placeholder="例：AI, Web Design, アプリ開発（省略可能）">
+                    </div>
+                </div>
+                
+                <!-- 裏面メッセージを独立したセクションとして配置 -->
+                <div class="form-group" id="back-message-group" style="display: none;">
+                    <label for="backMessage">裏面メッセージ</label>
+                    <textarea id="backMessage" name="backMessage" rows="6" placeholder="カードの裏面に表示されるメッセージ（詳細情報、実現方法など）"></textarea>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group image-upload">
+                        <label for="image">サムネイル画像（任意）</label>
+                        <div class="upload-area" id="uploadArea">
+                            <p>画像をドラッグ&ドロップするか、クリックして選択してください（省略可能）</p>
+                            <input type="file" id="image" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn">投稿する</button>
+            </form>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>アップロード中...</p>
+        </div>
+
+        <div class="gallery-header">
+            <div>
+                <h2 class="gallery-title" id="galleryTitle">Latest</h2>
+                <p class="gallery-subtitle" id="gallerySubtitle">最新のAIコンテンツを探索する</p>
+            </div>
+        </div>
+
+        <div class="gallery" id="gallery">
+            <!-- コンテンツカードがここに動的に追加されます -->
+        </div>
+        
+        <div class="edit-gallery" id="editGallery" style="display: none;">
+            <!-- 編集用のコンパクトなギャラリーがここに表示されます -->
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">コンテンツを編集</h3>
+                <span class="close" id="closeModal">&times;</span>
+            </div>
+            <form id="editForm">
+                <input type="hidden" id="editContentId">
+                <div class="modal-form-grid">
+                    <div class="form-group">
+                        <label for="editTitle">プロジェクト名</label>
+                        <input type="text" id="editTitle" name="title" required>
+                    </div>
+                    <div class="form-group" id="edit-url-group">
+                        <label for="editUrl">プロジェクトURL</label>
+                        <input type="url" id="editUrl" name="url">
+                    </div>
+                    <div class="form-group" id="edit-category-group">
+                        <label for="editCategory">ジャンル</label>
+                        <input type="text" id="editCategory" name="category" placeholder="例：AI, Web Design, アプリ開発（省略可能）">
+                    </div>
+                    <div class="form-group">
+                        <label for="editDescription">説明</label>
+                        <textarea id="editDescription" name="description" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group" id="edit-back-message-group" style="display: none;">
+                        <label for="editBackMessage">裏面メッセージ</label>
+                        <textarea id="editBackMessage" name="backMessage" rows="6" placeholder="カードの裏面に表示されるメッセージを入力してください"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="editImage">サムネイル画像（任意）</label>
+                        <div class="modal-upload-area" id="editUploadArea">
+                            <p>新しい画像をアップロードする場合はクリックしてください（省略可能）</p>
+                            <input type="file" id="editImage" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="modal-btn modal-btn-secondary" id="cancelEdit">キャンセル</button>
+                    <button type="button" class="modal-btn modal-btn-danger" id="deleteContent">削除</button>
+                    <button type="submit" class="modal-btn modal-btn-primary">更新</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Floating Navigation -->
+    <nav class="floating-nav">
+        <div class="floating-nav-logo">W.</div>
+        <a href="#" class="floating-nav-item active" data-page="gallery">Gallery</a>
+        <a href="#" class="floating-nav-item" data-page="ai-knowledge">AI Knowledge</a>
+        <a href="#" class="floating-nav-item" data-page="collections">Collections</a>
+        <a href="#" class="floating-nav-item" data-page="myself">Myself</a>
+        <a href="#" class="floating-nav-cta" data-page="main">Main</a>
+    </nav>
+
+    <script>
+        // Supabase設定
+        const SUPABASE_URL = 'https://qmdjelrbvfskqdisthrn.supabase.co'
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtZGplbHJidmZza3FkaXN0aHJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4ODk1OTksImV4cCI6MjA2NTQ2NTU5OX0.StEGkVLEGHHNjsmubOdE182yPf-UZGjdpQ_CBr6zGYg'
+        let currentPage = 'gallery'; // Track current page
+        
+        let supabase = null;
+        
+        // Supabase初期化関数
+        function initSupabase(url, key) {
+            supabase = window.supabase.createClient(url, key);
+        }
+
+        // DOM要素
+        const form = document.getElementById('contentForm');
+        const gallery = document.getElementById('gallery');
+        const editGallery = document.getElementById('editGallery');
+        const loading = document.getElementById('loading');
+        const uploadArea = document.getElementById('uploadArea');
+        const imageInput = document.getElementById('image');
+        const navTabs = document.querySelectorAll('.nav-tab');
+        const uploadSection = document.getElementById('upload-section');
+        const editModal = document.getElementById('editModal');
+        const editForm = document.getElementById('editForm');
+        const editUploadArea = document.getElementById('editUploadArea');
+        const editImageInput = document.getElementById('editImage');
+
+        // Navigation handling
+        navTabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Remove active class from all tabs
+                navTabs.forEach(t => t.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Show/hide sections based on tab
+                if (tab.getAttribute('href') === '#upload') {
+                    uploadSection.style.display = 'block';
+                    gallery.style.display = 'none';
+                    editGallery.style.display = 'grid';
+                    document.getElementById('galleryTitle').textContent = 'Your Contents';
+                    document.getElementById('gallerySubtitle').textContent = '投稿済みのコンテンツを管理・編集する';
+                    loadEditGallery();
+                } else {
+                    uploadSection.style.display = 'none';
+                    gallery.style.display = 'grid';
+                    editGallery.style.display = 'none';
+                    document.getElementById('galleryTitle').textContent = 'Latest';
+                    document.getElementById('gallerySubtitle').textContent = '最新のAIコンテンツを探索する';
+                }
+            });
+        });
+
+        // Floating navigation handling
+        const floatingNavItems = document.querySelectorAll('.floating-nav-item');
+        floatingNavItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Remove active class from all floating nav items
+                floatingNavItems.forEach(i => i.classList.remove('active'));
+                
+                // Add active class to clicked item
+                item.classList.add('active');
+                
+                // Handle specific navigation actions
+                const href = item.getAttribute('href');
+                if (href === '#nominees') {
+                    // Show gallery view
+                    uploadSection.style.display = 'none';
+                    navTabs.forEach(t => t.classList.remove('active'));
+                    document.querySelector('a[href="#gallery"]').classList.add('active');
+                }
+            });
+        });
+
+        // Handle floating nav CTA button
+        document.querySelector('.floating-nav-cta').addEventListener('click', (e) => {
+            e.preventDefault();
+            const page = e.target.dataset.page;
+            if (page) {
+                switchPage(page);
+            }
+        });
+
+        // Initially hide upload section and edit gallery
+        uploadSection.style.display = 'none';
+        editGallery.style.display = 'none';
+
+        // ドラッグ&ドロップ機能
+        uploadArea.addEventListener('click', () => imageInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                imageInput.files = files;
+                updateUploadArea(files[0]);
+            }
+        });
+
+        imageInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                updateUploadArea(e.target.files[0]);
+            }
+        });
+
+        // CTRL+V画像貼り付け機能
+        document.addEventListener('paste', (e) => {
+            const items = e.clipboardData.items;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    const file = items[i].getAsFile();
+                    if (file) {
+                        // ファイル入力エリアにファイルを設定
+                        const dt = new DataTransfer();
+                        dt.items.add(file);
+                        imageInput.files = dt.files;
+                        
+                        updateUploadArea(file);
+                        e.preventDefault();
+                    }
+                }
+            }
+        });
+
+        function updateUploadArea(file) {
+            uploadArea.innerHTML = `
+                <div class="uploaded-image-preview">
+                    <img src="${URL.createObjectURL(file)}" alt="プレビュー" style="max-width: 200px; max-height: 150px; border-radius: 4px; margin-bottom: 8px;">
+                    <p>選択済み: ${file.name}</p>
+                </div>
+            `;
+        }
+
+        // フォーム送信（新規追加のみ）
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!supabase) {
+                alert('Supabaseが設定されていません。管理者にお問い合わせください。');
+                return;
+            }
+
+            const formData = new FormData(e.target);
+            const title = formData.get('title');
+            const url = formData.get('url');
+            const description = formData.get('description');
+            const category = formData.get('category');
+            const backMessage = formData.get('backMessage');
+            const image = imageInput.files[0];
+            
+            // バリデーション
+            if (!title || !description) {
+                alert('プロジェクト名と説明は必須項目です。');
+                return;
+            }
+            
+            if (currentPage === 'gallery' && !url) {
+                alert('プロジェクトURLは必須項目です。');
+                return;
+            }
+            
+            loading.style.display = 'block';
+
+            try {
+                let thumbnailUrl = null;
+                
+                // 画像がアップロードされた場合のみ処理
+                if (image) {
+                    // 画像をリサイズ
+                    const resizedImage = await resizeImage(image, 800, 600, 0.8);
+                    
+                    // 画像をSupabase Storageにアップロード（ファイル名を英数字のみに変更）
+                    const fileExtension = image.name.split('.').pop();
+                    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExtension}`;
+                    const { data: uploadData, error: uploadError } = await supabase.storage
+                        .from('thumbnails')
+                        .upload(fileName, resizedImage);
+
+                    if (uploadError) throw uploadError;
+
+                    // 画像のパブリックURLを取得
+                    const { data: urlData } = supabase.storage
+                        .from('thumbnails')
+                        .getPublicUrl(fileName);
+                    
+                    thumbnailUrl = urlData.publicUrl;
+                }
+
+                // データベースにコンテンツ情報を保存
+                const tableName = currentPage === 'ai-knowledge' ? 'business_ideas' : 'contents';
+                const insertData = {
+                    title,
+                    description,
+                    thumbnail_url: thumbnailUrl,
+                    created_at: new Date().toISOString()
+                };
+                
+                if (currentPage === 'ai-knowledge') {
+                    insertData.back_message = backMessage || '';
+                    // AI Knowledgeでは空文字列をセット
+                    insertData.url = '';
+                } else {
+                    insertData.url = url;
+                    insertData.category = category || '';
+                }
+                
+                const { data, error } = await supabase
+                    .from(tableName)
+                    .insert([insertData])
+                    .select();
+
+                if (error) throw error;
+
+                // フォームをリセット
+                form.reset();
+                uploadArea.innerHTML = '<p>画像をドラッグ&ドロップするか、クリックして選択してください</p>';
+                
+                // ギャラリーを更新
+                if (currentPage === 'ai-knowledge') {
+                    loadAIKnowledge();
+                } else {
+                    loadContents();
+                }
+                loadEditGallery();
+                
+                // ギャラリータブに切り替え
+                navTabs.forEach(t => t.classList.remove('active'));
+                document.querySelector('a[href="#gallery"]').classList.add('active');
+                uploadSection.style.display = 'none';
+                gallery.style.display = 'grid';
+                editGallery.style.display = 'none';
+                document.getElementById('galleryTitle').textContent = 'Latest';
+                document.getElementById('gallerySubtitle').textContent = currentPage === 'ai-knowledge' ? '最新のAIナレッジを探索する' : '最新のAIコンテンツを探索する';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('エラーが発生しました: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+
+        // コンテンツ読み込み
+        async function loadContents() {
+            if (!supabase) return;
+
+            try {
+                const { data, error } = await supabase
+                    .from('contents')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                displayContents(data);
+            } catch (error) {
+                console.error('Error loading contents:', error);
+            }
+        }
+
+        // コンテンツ表示
+        function displayContents(contents) {
+            gallery.innerHTML = '';
+            
+            contents.forEach((content, index) => {
+                const date = new Date(content.created_at).toLocaleDateString('ja-JP', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+                
+                const card = document.createElement('div');
+                card.className = `content-card-container fade-in stagger-${(index % 3) + 1}`;
+                
+                // カード用の内部コンテナを追加
+                const cardInner = document.createElement('div');
+                cardInner.className = 'content-card';
+                
+                // Check if this is AI knowledge page and card has back message
+                const isAIKnowledgePage = currentPage === 'ai-knowledge';
+                const hasBackMessage = content.back_message;
+                
+                if (isAIKnowledgePage) {
+                    const imageContent = content.thumbnail_url ? 
+                        `<img src="${content.thumbnail_url}" alt="${content.title}" class="card-image">` :
+                        `<div class="card-image no-image"><span>No Image</span></div>`;
+                    
+                    cardInner.innerHTML = `
+                        <div class="card-face">
+                            ${imageContent}
+                            <div class="card-content">
+                                <div class="card-header">
+                                    <h3 class="card-title">${content.title}</h3>
+                                    <div class="card-category">AI KNOWLEDGE</div>
+                                </div>
+                                <p class="card-description">${content.description}</p>
+                                <div class="card-footer">
+                                    <div class="card-date">${date}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-face card-back">
+                            <div class="back-icon">💬</div>
+                            <p>${content.back_message || 'このAIナレッジの詳細情報はまだ追加されていません。'}</p>
+                        </div>
+                    `;
+                    
+                    // カードコンテナに追加
+                    card.appendChild(cardInner);
+                    
+                    // 初期状態はCSSで設定済み
+                    
+                    // Add click handler for card flip with GSAP
+                    cardInner.addEventListener('click', () => {
+                        flipCard(cardInner);
+                    });
+                } else {
+                    const imageContent = content.thumbnail_url ? 
+                        `<img src="${content.thumbnail_url}" alt="${content.title}" class="card-image">` :
+                        `<div class="card-image no-image"><span>No Image</span></div>`;
+                    
+                    const categoryDisplay = content.category || 'Nothing';
+                    
+                    cardInner.innerHTML = `
+                        <div class="card-face">
+                            ${imageContent}
+                            <div class="card-content">
+                                <div class="card-header">
+                                    <div>
+                                        <h3 class="card-title">${content.title}</h3>
+                                        <div class="card-category">${categoryDisplay}</div>
+                                    </div>
+                                </div>
+                                <p class="card-description">${content.description}</p>
+                                <div class="card-footer">
+                                    <div class="card-date">${date}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // カードコンテナに追加
+                    card.appendChild(cardInner);
+                    
+                    // 通常のカードは初期状態の設定は不要（フロント面のみ）
+                    
+                    // Add click handler for the entire card
+                    cardInner.addEventListener('click', () => {
+                        if (content.url) {
+                            window.open(content.url, '_blank');
+                        }
+                    });
+                }
+                
+                gallery.appendChild(card); // コンテナをギャラリーに追加
+            });
+        }
+
+        // 画像リサイズ関数
+        function resizeImage(file, maxWidth, maxHeight, quality) {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                
+                img.onload = function() {
+                    // アスペクト比を保持してリサイズ
+                    let { width, height } = img;
+                    
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height = (height * maxWidth) / width;
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width = (width * maxHeight) / height;
+                            height = maxHeight;
+                        }
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    // 画像を描画
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // Blobとして出力
+                    canvas.toBlob(resolve, 'image/jpeg', quality);
+                };
+                
+                img.src = URL.createObjectURL(file);
+            });
+        }
+
+        // 編集用ギャラリーを読み込む
+        async function loadEditGallery() {
+            if (!supabase) return;
+
+            try {
+                const tableName = currentPage === 'ai-knowledge' ? 'business_ideas' : 'contents';
+                const { data, error } = await supabase
+                    .from(tableName)
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                displayEditGallery(data);
+            } catch (error) {
+                console.error('Error loading edit gallery:', error);
+            }
+        }
+
+        // 編集用ギャラリー表示
+        function displayEditGallery(contents) {
+            editGallery.innerHTML = '';
+            
+            contents.forEach((content) => {
+                const card = document.createElement('div');
+                card.className = 'edit-card';
+                
+                const imageContent = content.thumbnail_url ? 
+                    `<img src="${content.thumbnail_url}" alt="${content.title}" class="edit-card-image">` :
+                    `<div class="edit-card-image no-image"><span>No Image</span></div>`;
+                
+                card.innerHTML = `
+                    ${imageContent}
+                    <div class="edit-card-content">
+                        <h3 class="edit-card-title">${content.title}</h3>
+                    </div>
+                `;
+                
+                // カードクリックでモーダルを開く
+                card.addEventListener('click', () => {
+                    openEditModal(content);
+                });
+                
+                editGallery.appendChild(card);
+            });
+        }
+
+        // 編集モーダルを開く
+        function openEditModal(content) {
+            document.getElementById('editContentId').value = content.id;
+            document.getElementById('editTitle').value = content.title;
+            document.getElementById('editUrl').value = content.url || '';
+            document.getElementById('editCategory').value = content.category || '';
+            document.getElementById('editDescription').value = content.description;
+            document.getElementById('editBackMessage').value = content.back_message || '';
+            
+            // 現在の画像を表示
+            if (content.thumbnail_url) {
+                editUploadArea.innerHTML = `
+                    <img src="${content.thumbnail_url}" alt="${content.title}" class="current-image-preview">
+                    <p>新しい画像をアップロードする場合はクリックしてください</p>
+                `;
+            } else {
+                editUploadArea.innerHTML = `
+                    <div class="no-image-placeholder">
+                        <span>No Image</span>
+                    </div>
+                    <p>画像をアップロードする場合はクリックしてください</p>
+                `;
+            }
+            
+            editModal.style.display = 'block';
+        }
+
+        // モーダル関連のイベントリスナー
+        document.getElementById('closeModal').addEventListener('click', () => {
+            editModal.style.display = 'none';
+        });
+
+        document.getElementById('cancelEdit').addEventListener('click', () => {
+            editModal.style.display = 'none';
+        });
+
+        // モーダル外クリックで閉じる
+        window.addEventListener('click', (e) => {
+            if (e.target === editModal) {
+                editModal.style.display = 'none';
+            }
+        });
+
+        // 編集フォーム用の画像アップロード
+        editUploadArea.addEventListener('click', () => editImageInput.click());
+        editImageInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                updateEditUploadArea(file);
+            }
+        });
+
+        // 編集モーダル用CTRL+V画像貼り付け機能
+        editModal.addEventListener('paste', (e) => {
+            const items = e.clipboardData.items;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    const file = items[i].getAsFile();
+                    if (file) {
+                        const dt = new DataTransfer();
+                        dt.items.add(file);
+                        editImageInput.files = dt.files;
+                        
+                        updateEditUploadArea(file);
+                        e.preventDefault();
+                    }
+                }
+            }
+        });
+
+        function updateEditUploadArea(file) {
+            editUploadArea.innerHTML = `
+                <div class="uploaded-image-preview">
+                    <img src="${URL.createObjectURL(file)}" alt="プレビュー" style="max-width: 200px; max-height: 150px; border-radius: 4px; margin-bottom: 8px;">
+                    <p>選択済み: ${file.name}</p>
+                    <p style="font-size: 12px; color: var(--text-light); margin-top: 8px;">更新時に新しい画像がアップロードされます</p>
+                </div>
+            `;
+        }
+
+        // 削除ボタン
+        document.getElementById('deleteContent').addEventListener('click', async () => {
+            const contentId = document.getElementById('editContentId').value;
+            
+            if (!confirm('このコンテンツを削除してもよろしいですか？この操作は元に戻せません。')) {
+                return;
+            }
+            
+            loading.style.display = 'block';
+            
+            try {
+                const tableName = currentPage === 'ai-knowledge' ? 'business_ideas' : 'contents';
+                const { error } = await supabase
+                    .from(tableName)
+                    .delete()
+                    .eq('id', contentId);
+                
+                if (error) throw error;
+                
+                editModal.style.display = 'none';
+                loadEditGallery();
+                if (currentPage === 'ai-knowledge') {
+                    loadAIKnowledge();
+                } else {
+                    loadContents();
+                }
+                
+                alert('コンテンツが削除されました。');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('削除中にエラーが発生しました: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+
+        // 編集フォーム送信
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const contentId = document.getElementById('editContentId').value;
+            const title = document.getElementById('editTitle').value;
+            const url = document.getElementById('editUrl').value;
+            const category = document.getElementById('editCategory').value;
+            const description = document.getElementById('editDescription').value;
+            const backMessage = document.getElementById('editBackMessage').value;
+            const image = editImageInput.files[0];
+            
+            // バリデーション
+            if (!title || !description) {
+                alert('プロジェクト名と説明は必須項目です。');
+                return;
+            }
+            
+            if (currentPage === 'gallery' && !url) {
+                alert('プロジェクトURLは必須項目です。');
+                return;
+            }
+            
+            loading.style.display = 'block';
+
+            try {
+                let thumbnailUrl;
+                
+                // 新しい画像がアップロードされた場合
+                if (image) {
+                    const resizedImage = await resizeImage(image, 800, 600, 0.8);
+                    const fileExtension = image.name.split('.').pop();
+                    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExtension}`;
+                    
+                    const { data: uploadData, error: uploadError } = await supabase.storage
+                        .from('thumbnails')
+                        .upload(fileName, resizedImage);
+
+                    if (uploadError) throw uploadError;
+
+                    const { data: urlData } = supabase.storage
+                        .from('thumbnails')
+                        .getPublicUrl(fileName);
+                        
+                    thumbnailUrl = urlData.publicUrl;
+                }
+                
+                const updateData = { title, description };
+                
+                if (currentPage === 'ai-knowledge') {
+                    updateData.back_message = backMessage;
+                    // AI Knowledgeでは空文字列をセット
+                    updateData.url = '';
+                } else {
+                    updateData.url = url;
+                    updateData.category = category;
+                }
+                
+                if (thumbnailUrl) {
+                    updateData.thumbnail_url = thumbnailUrl;
+                }
+                
+                const tableName = currentPage === 'ai-knowledge' ? 'business_ideas' : 'contents';
+                const { data, error } = await supabase
+                    .from(tableName)
+                    .update(updateData)
+                    .eq('id', contentId)
+                    .select();
+
+                if (error) throw error;
+
+                editModal.style.display = 'none';
+                loadEditGallery();
+                if (currentPage === 'ai-knowledge') {
+                    loadAIKnowledge();
+                } else {
+                    loadContents();
+                }
+                
+                alert('コンテンツが更新されました。');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('更新中にエラーが発生しました: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+
+        // ページ読み込み時の処理
+        // Page switching function
+        function switchPage(page) {
+            currentPage = page;
+            
+            // Update header
+            const pageTitle = document.getElementById('page-title');
+            const pageDescription = document.getElementById('page-description');
+            const backMessageGroup = document.getElementById('back-message-group');
+            const urlGroup = document.getElementById('url-group');
+            const editUrlGroup = document.getElementById('edit-url-group');
+            const categoryGroup = document.getElementById('category-group');
+            const editCategoryGroup = document.getElementById('edit-category-group');
+            const editBackMessageGroup = document.getElementById('edit-back-message-group');
+            const container = document.querySelector('.container');
+            
+            // Hide the profile section by default
+            if (document.getElementById('profile-section')) {
+                document.getElementById('profile-section').style.display = 'none';
+            }
+            
+            // Show container by default
+            container.style.display = 'block';
+            
+            if (page === 'ai-knowledge') {
+                pageTitle.textContent = 'AI Knowledge';
+                pageDescription.textContent = 'AI関連のナレッジとその実現への道筋を共有します。';
+                backMessageGroup.style.display = 'block';
+                document.getElementById('backMessage').required = true;
+                urlGroup.style.display = 'none';
+                document.getElementById('url').required = false;
+                editUrlGroup.style.display = 'none';
+                document.getElementById('editUrl').required = false;
+                categoryGroup.style.display = 'none';
+                editCategoryGroup.style.display = 'none';
+                editBackMessageGroup.style.display = 'block';
+                
+                // AI Knowledge用のsubmitボタンテキスト変更
+                document.querySelector('.submit-btn').textContent = 'ナレッジを投稿';
+            } else if (page === 'gallery') {
+                pageTitle.textContent = 'AI Content Gallery';
+                pageDescription.textContent = 'AIと共創することカタチにできたコンテンツを紹介しています。';
+                backMessageGroup.style.display = 'none';
+                document.getElementById('backMessage').required = false;
+                urlGroup.style.display = 'block';
+                document.getElementById('url').required = true;
+                editUrlGroup.style.display = 'block';
+                document.getElementById('editUrl').required = true;
+                categoryGroup.style.display = 'block';
+                editCategoryGroup.style.display = 'block';
+                editBackMessageGroup.style.display = 'none';
+                
+                // Gallery用のsubmitボタンテキスト変更
+                document.querySelector('.submit-btn').textContent = 'コンテンツを投稿';
+            } else if (page === 'myself') {
+                // Hide main container and show profile section
+                container.style.display = 'none';
+                
+                // Create profile section if it doesn't exist
+                if (!document.getElementById('profile-section')) {
+                    createProfileSection();
+                }
+                
+                // Show profile section
+                document.getElementById('profile-section').style.display = 'block';
+                return; // Skip the rest of the function
+            } else if (page === 'main') {
+                // Main page functionality
+                window.location.href = '#';
+                switchPage('gallery');
+                return;
+            }
+            
+            // Update navigation active state
+            document.querySelectorAll('.floating-nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.page === page) {
+                    item.classList.add('active');
+                }
+            });
+            
+            // Reset form and tabs
+            navTabs.forEach(t => t.classList.remove('active'));
+            document.querySelector('a[href="#gallery"]').classList.add('active');
+            uploadSection.style.display = 'none';
+            gallery.style.display = 'grid';
+            editGallery.style.display = 'none';
+            document.getElementById('galleryTitle').textContent = 'Latest';
+            document.getElementById('gallerySubtitle').textContent = page === 'ai-knowledge' ? '最新のAIナレッジを探索する' : '最新のAIコンテンツを探索する';
+            
+            // Load appropriate content
+            if (page === 'ai-knowledge') {
+                loadAIKnowledge();
+            } else {
+                loadContents();
+            }
+        }
+        
+        // Load AI Knowledge
+        async function loadAIKnowledge() {
+            if (!supabase) return;
+
+            try {
+                const { data, error } = await supabase
+                    .from('business_ideas')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                displayContents(data);
+            } catch (error) {
+                console.error('Error loading AI knowledge:', error);
+            }
+        }
+        
+        // Create profile section with animation
+        function createProfileSection() {
+            const profileSection = document.createElement('div');
+            profileSection.id = 'profile-section';
+            profileSection.className = 'profile-section';
+            
+            profileSection.innerHTML = `
+                <div class="profile-container">
+                    <div class="profile-header">
+                        <div class="profile-avatar">
+                            <div class="avatar-placeholder">YW</div>
+                        </div>
+                        <div class="profile-title">
+                            <h1 class="profile-name">Your Name</h1>
+                            <p class="profile-tagline">AI Creator & Innovator</p>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-bio">
+                        <div class="bio-section fade-in stagger-1">
+                            <h2>About Me</h2>
+                            <p>AIと共に創造的なプロジェクトを展開するクリエイターです。テクノロジーと芸術の融合点を探求し、新しい表現方法を模索しています。</p>
+                        </div>
+                        
+                        <div class="bio-section fade-in stagger-2">
+                            <h2>Skills</h2>
+                            <div class="skills-container">
+                                <div class="skill-tag">AI</div>
+                                <div class="skill-tag">Design</div>
+                                <div class="skill-tag">Web Development</div>
+                                <div class="skill-tag">Creative Direction</div>
+                                <div class="skill-tag">UX/UI</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bio-section fade-in stagger-3">
+                            <h2>Featured Projects</h2>
+                            <div class="projects-grid">
+                                <div class="project-card">
+                                    <div class="project-card-inner">
+                                        <div class="project-card-front">
+                                            <div class="project-icon">🎨</div>
+                                            <h3>AI Art Gallery</h3>
+                                        </div>
+                                        <div class="project-card-back">
+                                            <p>AIを活用したアート作品のオンラインギャラリー。視覚表現の新しい可能性を探求しています。</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="project-card">
+                                    <div class="project-card-inner">
+                                        <div class="project-card-front">
+                                            <div class="project-icon">💡</div>
+                                            <h3>Innovation Hub</h3>
+                                        </div>
+                                        <div class="project-card-back">
+                                            <p>AIを活用したビジネスアイデアの共有プラットフォーム。未来志向の起業家コミュニティを形成しています。</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="project-card">
+                                    <div class="project-card-inner">
+                                        <div class="project-card-front">
+                                            <div class="project-icon">🚀</div>
+                                            <h3>Future Lab</h3>
+                                        </div>
+                                        <div class="project-card-back">
+                                            <p>次世代テクノロジーを活用した実験的プロジェクト。AIと人間の共創の可能性を追求しています。</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bio-section fade-in stagger-4">
+                            <h2>Connect</h2>
+                            <div class="connect-links">
+                                <a href="#" class="connect-link">Twitter</a>
+                                <a href="#" class="connect-link">LinkedIn</a>
+                                <a href="#" class="connect-link">GitHub</a>
+                                <a href="#" class="connect-link">Portfolio</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add custom styles for profile
+            const style = document.createElement('style');
+            style.textContent = `
+                .profile-section {
+                    min-height: 100vh;
+                    background: var(--body-bg);
+                    padding: 60px 20px;
+                    font-family: 'Poppins', sans-serif;
+                }
+                
+                .profile-container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    background: var(--secondary-color);
+                    border-radius: 8px;
+                    border: 1px solid var(--border-color);
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+                    overflow: hidden;
+                    animation: fadeInUp 0.6s ease-out forwards;
+                }
+                
+                .profile-header {
+                    display: flex;
+                    align-items: center;
+                    padding: 60px 40px;
+                    background: var(--primary-color);
+                    color: var(--secondary-color);
+                    border-bottom: 1px solid var(--border-color);
+                }
+                
+                .profile-avatar {
+                    width: 120px;
+                    height: 120px;
+                    margin-right: 30px;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    background: rgba(255, 255, 255, 0.05);
+                }
+                
+                .avatar-placeholder {
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(255, 255, 255, 0.1);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 36px;
+                    font-weight: 600;
+                    color: var(--secondary-color);
+                }
+                
+                .profile-name {
+                    font-size: 32px;
+                    font-weight: 600;
+                    margin-bottom: 8px;
+                    color: var(--secondary-color);
+                }
+                
+                .profile-tagline {
+                    font-size: 16px;
+                    color: var(--text-light);
+                    opacity: 0.8;
+                }
+                
+                .profile-bio {
+                    padding: 48px 40px;
+                }
+                
+                .bio-section {
+                    margin-bottom: 48px;
+                }
+                
+                .bio-section h2 {
+                    font-size: 20px;
+                    font-weight: 600;
+                    margin-bottom: 16px;
+                    color: var(--text-primary);
+                    position: relative;
+                    display: inline-block;
+                }
+                
+                .bio-section h2:after {
+                    content: '';
+                    position: absolute;
+                    left: 0;
+                    bottom: -6px;
+                    width: 30px;
+                    height: 2px;
+                    background: var(--accent-color);
+                    transition: width 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+                }
+                
+                .bio-section:hover h2:after {
+                    width: 100%;
+                }
+                
+                .bio-section p {
+                    font-size: 15px;
+                    line-height: 1.6;
+                    color: var(--text-secondary);
+                }
+                
+                .skills-container {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 8px;
+                    margin-top: 16px;
+                }
+                
+                .skill-tag {
+                    background: var(--tag-bg);
+                    padding: 6px 12px;
+                    border-radius: 16px;
+                    font-size: 12px;
+                    font-weight: 500;
+                    color: var(--text-secondary);
+                    border: 1px solid var(--border-color);
+                    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+                }
+                
+                .skill-tag:hover {
+                    transform: translateY(-2px);
+                    background: var(--accent-color);
+                    color: var(--secondary-color);
+                    border-color: var(--accent-color);
+                    box-shadow: 0 4px 12px rgba(255, 107, 0, 0.2);
+                }
+                
+                .projects-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                    gap: 24px;
+                    margin-top: 24px;
+                }
+                
+                .project-card {
+                    height: 200px;
+                    perspective: 1000px;
+                }
+                
+                .project-card-inner {
+                    position: relative;
+                    width: 100%;
+                    height: 100%;
+                    transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+                    transform-style: preserve-3d;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+                }
+                
+                .project-card:hover .project-card-inner {
+                    transform: rotateY(180deg);
+                }
+                
+                .project-card-front, .project-card-back {
+                    position: absolute;
+                    width: 100%;
+                    height: 100%;
+                    backface-visibility: hidden;
+                    border-radius: 8px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 24px;
+                    text-align: center;
+                    border: 1px solid var(--border-color);
+                }
+                
+                .project-card-front {
+                    background: var(--secondary-color);
+                }
+                
+                .project-card-front h3 {
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: var(--text-primary);
+                    margin-top: 12px;
+                }
+                
+                .project-card-back {
+                    background: var(--primary-color);
+                    color: var(--secondary-color);
+                    transform: rotateY(180deg);
+                    border-color: var(--primary-color);
+                }
+                
+                .project-card-back p {
+                    font-size: 14px;
+                    line-height: 1.5;
+                    color: var(--text-light);
+                }
+                
+                .project-icon {
+                    font-size: 32px;
+                    margin-bottom: 12px;
+                    opacity: 0.8;
+                }
+                
+                .connect-links {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 12px;
+                    margin-top: 16px;
+                }
+                
+                .connect-link {
+                    padding: 8px 16px;
+                    background: var(--tag-bg);
+                    color: var(--text-secondary);
+                    border-radius: 16px;
+                    text-decoration: none;
+                    font-size: 12px;
+                    font-weight: 500;
+                    border: 1px solid var(--border-color);
+                    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+                }
+                
+                .connect-link:hover {
+                    background: var(--accent-color);
+                    color: var(--secondary-color);
+                    border-color: var(--accent-color);
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(255, 107, 0, 0.2);
+                }
+                
+                @keyframes fadeInUp {
+                    from {
+                        opacity: 0;
+                        transform: translateY(20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
+                @media (max-width: 768px) {
+                    .profile-section {
+                        padding: 40px 16px;
+                    }
+                    
+                    .profile-header {
+                        flex-direction: column;
+                        text-align: center;
+                        padding: 40px 24px;
+                    }
+                    
+                    .profile-avatar {
+                        margin-right: 0;
+                        margin-bottom: 20px;
+                    }
+                    
+                    .profile-bio {
+                        padding: 32px 24px;
+                    }
+                    
+                    .projects-grid {
+                        grid-template-columns: 1fr;
+                        gap: 16px;
+                    }
+                    
+                    .bio-section {
+                        margin-bottom: 32px;
+                    }
+                }
+            `;
+            
+            document.head.appendChild(style);
+            document.body.appendChild(profileSection);
+        }
+
+        // カードをフリップする関数（完全シンプル版）
+        function flipCard(card) {
+            card.classList.toggle('flipped');
+        }
+        
+        // コレクションデータの読み込み
+        async function loadCollections() {
+            try {
+                const { data, error } = await supabase
+                    .from('collections')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                displayCollections(data);
+            } catch (error) {
+                console.error('Error loading collections:', error);
+            }
+        }
+        
+        // コレクションの表示
+        function displayCollections(collections) {
+            const collectionsGallery = document.getElementById('collections-gallery');
+            collectionsGallery.innerHTML = '';
+            
+            if (collections.length === 0) {
+                collectionsGallery.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📚</div>
+                        <h3>コレクションがありません</h3>
+                        <p>「+ 新しいコレクション」ボタンをクリックして、最初のコレクションを作成しましょう。</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            collections.forEach((collection, index) => {
+                const date = new Date(collection.created_at).toLocaleDateString('ja-JP', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+                
+                const card = document.createElement('div');
+                card.className = `content-card-container fade-in stagger-${(index % 3) + 1}`;
+                
+                // カード用の内部コンテナを追加
+                const cardInner = document.createElement('div');
+                cardInner.className = 'content-card';
+                
+                const imageContent = collection.thumbnail_url ? 
+                    `<img src="${collection.thumbnail_url}" alt="${collection.title}" class="card-image">` :
+                    `<div class="card-image no-image"><span>No Image</span></div>`;
+                
+                cardInner.innerHTML = `
+                    <div class="card-face">
+                        ${imageContent}
+                        <div class="card-content">
+                            <div class="card-header">
+                                <h3 class="card-title">${collection.title}</h3>
+                                <div class="card-category">COLLECTION</div>
+                            </div>
+                            <p class="card-description">${collection.description}</p>
+                            <div class="card-footer">
+                                <div class="card-date">${date}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-face card-back">
+                        <div class="back-icon">💬</div>
+                        <p>${collection.back_message || 'このコレクションの詳細情報はまだ追加されていません。'}</p>
+                    </div>
+                `;
+                
+                // カードコンテナに追加
+                card.appendChild(cardInner);
+                
+                // 初期状態を設定
+                cardInner.addEventListener('click', () => {
+                    flipCard(cardInner);
+                });
+                
+                collectionsGallery.appendChild(card);
+            });
+        }
+        
+        // コレクション新規作成フォームの表示
+        function showCollectionForm() {
+            // 既存のフォームがあれば削除
+            const existingForm = document.getElementById('collection-form-container');
+            if (existingForm) {
+                existingForm.remove();
+            }
+            
+            // フォームコンテナの作成
+            const formContainer = document.createElement('div');
+            formContainer.id = 'collection-form-container';
+            formContainer.className = 'modal';
+            formContainer.style.display = 'flex';
+            
+            formContainer.innerHTML = `
+                <div class="modal-content">
+                    <span class="close-btn">&times;</span>
+                    <h2>新しいコレクション</h2>
+                    <form id="collection-form">
+                        <div class="form-group">
+                            <label for="collection-title">タイトル</label>
+                            <input type="text" id="collection-title" name="title" required placeholder="コレクションのタイトルを入力">
+                        </div>
+                        <div class="form-group">
+                            <label for="collection-description">説明</label>
+                            <textarea id="collection-description" name="description" rows="4" required placeholder="コレクションの説明を入力してください"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="collection-back-message">裏面メッセージ</label>
+                            <textarea id="collection-back-message" name="back_message" rows="6" placeholder="カードの裏面に表示されるメッセージを入力してください"></textarea>
+                        </div>
+                        <div class="form-group image-upload">
+                            <label for="collection-image">サムネイル画像（任意）</label>
+                            <div class="upload-area" id="collection-upload-area">
+                                <p>画像をドラッグ&ドロップするか、クリックして選択してください（省略可能）</p>
+                                <input type="file" id="collection-image" accept="image/*" style="display: none;">
+                            </div>
+                        </div>
+                        <button type="submit" class="submit-btn">コレクションを作成</button>
+                    </form>
+                </div>
+            `;
+            
+            document.body.appendChild(formContainer);
+            
+            // 閉じるボタンのイベントリスナー
+            const closeBtn = formContainer.querySelector('.close-btn');
+            closeBtn.addEventListener('click', () => {
+                formContainer.style.display = 'none';
+            });
+            
+            // 背景クリックで閉じる
+            formContainer.addEventListener('click', (e) => {
+                if (e.target === formContainer) {
+                    formContainer.style.display = 'none';
+                }
+            });
+            
+            // アップロードエリアのイベントリスナー
+            const uploadArea = document.getElementById('collection-upload-area');
+            const imageInput = document.getElementById('collection-image');
+            
+            uploadArea.addEventListener('click', () => {
+                imageInput.click();
+            });
+            
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('drag-over');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('drag-over');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+                
+                if (e.dataTransfer.files.length) {
+                    imageInput.files = e.dataTransfer.files;
+                    handleImagePreview(e.dataTransfer.files[0], uploadArea);
+                }
+            });
+            
+            imageInput.addEventListener('change', () => {
+                if (imageInput.files.length) {
+                    handleImagePreview(imageInput.files[0], uploadArea);
+                }
+            });
+            
+            // フォーム送信のイベントリスナー
+            const collectionForm = document.getElementById('collection-form');
+            collectionForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await handleCollectionSubmit(e, formContainer);
+            });
+        }
+        
+        // 画像プレビュー処理
+        function handleImagePreview(file, uploadArea) {
+            if (!file.type.match('image.*')) {
+                alert('画像ファイルを選択してください');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                uploadArea.innerHTML = `
+                    <div class="image-preview">
+                        <img src="${e.target.result}" alt="Preview">
+                    </div>
+                    <p>クリックして画像を変更</p>
+                    <input type="file" id="collection-image" accept="image/*" style="display: none;">
+                `;
+                
+                // 新しい入力要素にイベントリスナーを再設定
+                const newImageInput = document.getElementById('collection-image');
+                newImageInput.addEventListener('change', () => {
+                    if (newImageInput.files.length) {
+                        handleImagePreview(newImageInput.files[0], uploadArea);
+                    }
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // コレクション送信処理
+        async function handleCollectionSubmit(e, formContainer) {
+            const form = e.target;
+            const title = document.getElementById('collection-title').value;
+            const description = document.getElementById('collection-description').value;
+            const backMessage = document.getElementById('collection-back-message').value;
+            const imageInput = document.getElementById('collection-image');
+            
+            const loading = document.getElementById('loading');
+            loading.style.display = 'flex';
+            
+            try {
+                let thumbnailUrl = null;
+                
+                // 画像がある場合はアップロード
+                if (imageInput.files.length) {
+                    const file = imageInput.files[0];
+                    
+                    // 画像をリサイズ（最大幅800px）
+                    const resizedImage = await resizeImage(file, 800, 800, 0.9);
+                    
+                    // Supabaseストレージにアップロード
+                    const fileName = `collection_${Date.now()}.jpg`;
+                    const { data, error } = await supabase.storage
+                        .from('thumbnails')
+                        .upload(fileName, resizedImage, {
+                            contentType: 'image/jpeg',
+                            upsert: true
+                        });
+                    
+                    if (error) throw error;
+                    
+                    // 公開URLを取得
+                    const { data: urlData } = supabase.storage
+                        .from('thumbnails')
+                        .getPublicUrl(fileName);
+                    
+                    thumbnailUrl = urlData.publicUrl;
+                }
+                
+                // コレクションデータをSupabaseに保存
+                const { data, error } = await supabase
+                    .from('collections')
+                    .insert({
+                        title,
+                        description,
+                        back_message: backMessage || '',
+                        thumbnail_url: thumbnailUrl
+                    })
+                    .select();
+                
+                if (error) throw error;
+                
+                // フォームを閉じる
+                formContainer.style.display = 'none';
+                
+                // コレクションを再読み込み
+                loadCollections();
+                
+                alert('コレクションが作成されました。');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('エラーが発生しました: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // Supabase Auth関連の変数
+        let currentUser = null;
+        let pendingPage = '';
+
+        // パスワードモーダル関連の処理
+        // Supabase Auth関連の関数
+        function showAuthModal(targetPage = 'upload') {
+            const modal = document.getElementById('authModal');
+            const authForm = document.querySelector('.auth-form');
+            const signupForm = document.querySelector('.signup-form');
+            const authError = document.getElementById('authError');
+            const authSuccess = document.getElementById('authSuccess');
+            
+            pendingPage = targetPage;
+            modal.style.display = 'flex';
+            
+            // ログインフォームを表示
+            authForm.style.display = 'block';
+            signupForm.style.display = 'none';
+            
+            // エラー・成功メッセージをクリア
+            authError.style.display = 'none';
+            authSuccess.style.display = 'none';
+            
+            // 入力フィールドをクリア
+            document.getElementById('emailInput').value = '';
+            document.getElementById('passwordInput').value = '';
+            
+            // フォーカスを当てる
+            setTimeout(() => {
+                document.getElementById('emailInput').focus();
+            }, 100);
+        }
+
+        function hideAuthModal() {
+            const modal = document.getElementById('authModal');
+            modal.style.display = 'none';
+        }
+
+        function showError(message) {
+            const authError = document.getElementById('authError');
+            authError.textContent = message;
+            authError.style.display = 'block';
+            
+            const authSuccess = document.getElementById('authSuccess');
+            authSuccess.style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            const authSuccess = document.getElementById('authSuccess');
+            authSuccess.textContent = message;
+            authSuccess.style.display = 'block';
+            
+            const authError = document.getElementById('authError');
+            authError.style.display = 'none';
+        }
+
+        async function handleLogin() {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+
+            if (!email || !password) {
+                showError('メールアドレスとパスワードを入力してください');
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) {
+                    showError(error.message);
+                    return;
+                }
+
+                currentUser = data.user;
+                hideAuthModal();
+                
+                // 認証後に指定されたページに移動
+                navigateToPage(pendingPage);
+                
+            } catch (error) {
+                showError('ログインに失敗しました: ' + error.message);
+            }
+        }
+
+        async function handleSignup() {
+            const email = document.getElementById('signupEmailInput').value;
+            const password = document.getElementById('signupPasswordInput').value;
+            const confirmPassword = document.getElementById('confirmPasswordInput').value;
+
+            if (!email || !password || !confirmPassword) {
+                showError('全ての項目を入力してください');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showError('パスワードが一致しません');
+                return;
+            }
+
+            if (password.length < 6) {
+                showError('パスワードは6文字以上で入力してください');
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password
+                });
+
+                if (error) {
+                    showError(error.message);
+                    return;
+                }
+
+                showSuccess('登録が完了しました。メールを確認してアカウントを有効化してください。');
+                
+                // フォームをクリア
+                document.getElementById('signupEmailInput').value = '';
+                document.getElementById('signupPasswordInput').value = '';
+                document.getElementById('confirmPasswordInput').value = '';
+                
+            } catch (error) {
+                showError('登録に失敗しました: ' + error.message);
+            }
+        }
+
+        function navigateToPage(targetPage) {
+            if (targetPage === 'upload') {
+                switchToUploadPage();
+            } else if (targetPage === 'collections') {
+                switchToCollectionsPage();
+            } else if (targetPage === 'directory') {
+                switchToDirectoryPage();
+            }
+        }
+
+        // 認証状態をチェック
+        async function checkAuthStatus() {
+            const { data: { user } } = await supabase.auth.getUser();
+            currentUser = user;
+            return user !== null;
+        }
+
+        // 認証状態に応じたUI更新
+        function updateAuthUI() {
+            // 今後、ログアウトボタンなどのUI要素を追加する場合に使用
+        }
+
+        // ログアウト機能
+        async function handleLogout() {
+            try {
+                const { error } = await supabase.auth.signOut();
+                if (error) {
+                    console.error('ログアウトエラー:', error);
+                    return;
+                }
+                
+                currentUser = null;
+                // Galleryページに戻る
+                switchPage('gallery');
+                document.querySelectorAll('.nav-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                document.querySelector('a[href="#gallery"]').classList.add('active');
+                
+            } catch (error) {
+                console.error('ログアウトに失敗しました:', error);
+            }
+        }
+
+        function switchToUploadPage() {
+            // Upload section を表示
+            const uploadSection = document.getElementById('upload-section');
+            const gallery = document.getElementById('gallery');
+            const galleryHeader = document.querySelector('.gallery-header');
+            
+            gallery.style.display = 'none';
+            galleryHeader.style.display = 'none';
+            uploadSection.style.display = 'block';
+            
+            // タブの状態を更新
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.getElementById('submit-tab').classList.add('active');
+            
+            // ヘッダーを更新
+            document.getElementById('page-title').textContent = 'Submit Content';
+            document.getElementById('page-description').textContent = 'あなたのAI作品を共有して、他のクリエイターにインスピレーションを与えましょう。';
+        }
+        
+        function switchToCollectionsPage() {
+            // 各セクションの表示/非表示を設定
+            const uploadSection = document.getElementById('upload-section');
+            const gallery = document.getElementById('gallery');
+            const galleryHeader = document.querySelector('.gallery-header');
+            const collectionsContainer = document.getElementById('collections-container');
+            
+            gallery.style.display = 'none';
+            galleryHeader.style.display = 'none';
+            uploadSection.style.display = 'none';
+            
+            // コレクションコンテナがない場合は作成
+            if (!collectionsContainer) {
+                createCollectionsUI();
+            } else {
+                collectionsContainer.style.display = 'block';
+            }
+            
+            // タブの状態を更新
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector('a[href="#collections"]').classList.add('active');
+            
+            // ヘッダーを更新
+            document.getElementById('page-title').textContent = 'Collections';
+            document.getElementById('page-description').textContent = 'あなたのコレクションを整理し、共有しましょう';
+            
+            // コレクションデータを読み込む
+            loadCollections();
+        }
+        
+        // コレクションUIの作成
+        function createCollectionsUI() {
+            const container = document.createElement('div');
+            container.id = 'collections-container';
+            container.className = 'collections-container';
+            
+            // コレクションヘッダー
+            const header = document.createElement('div');
+            header.className = 'collections-header';
+            header.innerHTML = `
+                <div>
+                    <h2 class="collections-title">Your Collections</h2>
+                    <p class="collections-subtitle">あなたのコレクションを整理し、共有しましょう</p>
+                </div>
+                <button id="add-collection-btn" class="add-collection-btn">+ 新しいコレクション</button>
+            `;
+            
+            // コレクションギャラリー
+            const collectionsGallery = document.createElement('div');
+            collectionsGallery.id = 'collections-gallery';
+            collectionsGallery.className = 'collections-gallery';
+            
+            container.appendChild(header);
+            container.appendChild(collectionsGallery);
+            
+            // コンテナをページに追加
+            document.querySelector('.container').appendChild(container);
+            
+            // 新しいコレクション追加ボタンのイベントリスナー
+            document.getElementById('add-collection-btn').addEventListener('click', () => {
+                showCollectionForm();
+            });
+        }
+        
+        function switchToDirectoryPage() {
+            // Gallery とupload sectionを非表示
+            const uploadSection = document.getElementById('upload-section');
+            const gallery = document.getElementById('gallery');
+            const galleryHeader = document.querySelector('.gallery-header');
+            
+            gallery.style.display = 'none';
+            galleryHeader.style.display = 'none';
+            uploadSection.style.display = 'none';
+            
+            // タブの状態を更新
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector('a[href="#directory"]').classList.add('active');
+            
+            // ヘッダーを更新
+            document.getElementById('page-title').textContent = 'Directory';
+            document.getElementById('page-description').textContent = 'ディレクトリ機能は開発中です。';
+        }
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Supabase初期化
+            initSupabase(SUPABASE_URL, SUPABASE_KEY);
+            
+            // URLハッシュをクリアしてGalleryタブを強制的にアクティブにする
+            window.location.hash = '';
+            
+            // Galleryタブを確実にアクティブにする
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector('a[href="#gallery"]').classList.add('active');
+            
+            // 認証モーダルが表示されていないことを確認
+            const authModal = document.getElementById('authModal');
+            if (authModal) {
+                authModal.style.display = 'none';
+            }
+            
+            // 初期表示をGalleryページに設定
+            const uploadSection = document.getElementById('upload-section');
+            const gallery = document.getElementById('gallery');
+            const galleryHeader = document.querySelector('.gallery-header');
+            const editGallery = document.getElementById('editGallery');
+            const editModal = document.getElementById('editModal');
+            
+            if (uploadSection) uploadSection.style.display = 'none';
+            if (gallery) gallery.style.display = 'grid';
+            if (galleryHeader) galleryHeader.style.display = 'block';
+            if (editGallery) editGallery.style.display = 'none';
+            if (editModal) editModal.style.display = 'none';
+            
+            // ページタイトルとディスクリプションを初期状態に設定
+            document.getElementById('page-title').textContent = 'AI Content Gallery';
+            document.getElementById('page-description').textContent = 'AIと共創することカタチにできたコンテンツを紹介しています。';
+            
+            // 認証状態をチェック
+            await checkAuthStatus();
+            
+            // 認証状態の変更を監視
+            supabase.auth.onAuthStateChange((event, session) => {
+                currentUser = session?.user || null;
+                updateAuthUI();
+            });
+            
+            loadContents();
+            
+            // すべてのモーダルを確実に非表示にする（二重チェック）
+            setTimeout(() => {
+                const allModals = document.querySelectorAll('.modal, .auth-modal, #editModal, #authModal');
+                allModals.forEach(modal => {
+                    if (modal) modal.style.display = 'none';
+                });
+            }, 100);
+            
+            // 認証モーダルのイベントリスナー
+            document.getElementById('loginSubmit').addEventListener('click', handleLogin);
+            document.getElementById('signupSubmit').addEventListener('click', handleSignup);
+            document.getElementById('authCancel').addEventListener('click', hideAuthModal);
+            document.getElementById('signupCancel').addEventListener('click', hideAuthModal);
+            
+            // フォーム切り替え
+            document.getElementById('showSignup').addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelector('.auth-form').style.display = 'none';
+                document.querySelector('.signup-form').style.display = 'block';
+                document.getElementById('authError').style.display = 'none';
+                document.getElementById('authSuccess').style.display = 'none';
+            });
+            
+            document.getElementById('showLogin').addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelector('.auth-form').style.display = 'block';
+                document.querySelector('.signup-form').style.display = 'none';
+                document.getElementById('authError').style.display = 'none';
+                document.getElementById('authSuccess').style.display = 'none';
+            });
+            
+            // Enterキーでログイン/登録
+            document.getElementById('passwordInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    handleLogin();
+                }
+            });
+            
+            document.getElementById('confirmPasswordInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    handleSignup();
+                }
+            });
+
+            // モーダルの背景クリックで閉じる
+            document.getElementById('authModal').addEventListener('click', (e) => {
+                if (e.target.id === 'authModal') {
+                    hideAuthModal();
+                }
+            });
+
+            // タブのクリック処理
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const href = tab.getAttribute('href');
+                    
+                    if (href === '#gallery') {
+                        // Galleryは認証不要
+                        switchPage('gallery');
+                        // タブの状態を更新
+                        document.querySelectorAll('.nav-tab').forEach(t => {
+                            t.classList.remove('active');
+                        });
+                        tab.classList.add('active');
+                    } else {
+                        // Gallery以外は認証が必要
+                        const isAuthenticated = await checkAuthStatus();
+                        if (!isAuthenticated) {
+                            if (href === '#upload') {
+                                showAuthModal('upload');
+                            } else if (href === '#collections') {
+                                showAuthModal('collections');
+                            } else if (href === '#directory') {
+                                showAuthModal('directory');
+                            }
+                        } else {
+                            // 既に認証済みの場合
+                            if (href === '#upload') {
+                                switchToUploadPage();
+                            } else if (href === '#collections') {
+                                switchToCollectionsPage();
+                            } else if (href === '#directory') {
+                                switchToDirectoryPage();
+                            }
+                        }
+                    }
+                });
+            });
+            
+            // Add event listeners for page switching
+            document.querySelectorAll('.floating-nav-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const page = item.dataset.page;
+                    if (page) {
+                        switchPage(page);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

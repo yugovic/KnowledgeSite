@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Ideas</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #000;
+            --secondary-color: #fff;
+            --accent-color: #ff6b00;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666;
+            --text-light: #999;
+            --border-color: #e6e6e6;
+            --hover-bg: #f8f8f8;
+            --shadow: 0 2px 20px rgba(0,0,0,0.05);
+            --shadow-hover: 0 8px 40px rgba(0,0,0,0.12);
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f6f6f6;
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        .header {
+            padding: 60px 0 40px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 60px;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            font-size: 18px;
+            color: var(--text-secondary);
+            font-weight: 400;
+            max-width: 600px;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .nav-tab {
+            padding: 16px 0;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-light);
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--accent-color);
+        }
+
+        .nav-tab:hover {
+            color: var(--text-primary);
+        }
+
+        /* Upload Section */
+        .upload-section {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 40px;
+            margin-bottom: 60px;
+            box-shadow: var(--shadow);
+        }
+
+        .upload-section h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .upload-section .subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            font-size: 16px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group textarea {
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            background: var(--secondary-color);
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .image-upload {
+            grid-column: span 2;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 4px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #fafafa;
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent-color);
+            background: #f0f0f0;
+        }
+
+        .upload-area.dragover {
+            border-color: var(--accent-color);
+            background: #f0f0f0;
+        }
+
+        .submit-btn {
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            border: none;
+            padding: 16px 32px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .submit-btn:hover {
+            background: #333;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* Gallery */
+        .gallery-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .gallery-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .gallery-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 32px;
+            margin-bottom: 60px;
+        }
+        
+        .edit-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 60px;
+        }
+        
+        .edit-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+        }
+        
+        .edit-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        .edit-card-image {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            background: #f5f5f5;
+        }
+        
+        .edit-card-content {
+            padding: 12px;
+        }
+        
+        .edit-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .content-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+            transform-style: preserve-3d;
+            position: relative;
+            height: 400px;
+        }
+
+        .content-card:hover {
+            transform: translateY(-8px) scale(1.01);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .content-card.flipped {
+            transform: rotateY(-180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .card-back {
+            transform: rotateY(-180deg);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .card-back h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .card-back p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .card-back .back-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+            text-align: center;
+            width: 100%;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 240px;
+            object-fit: cover;
+            background: #f5f5f5;
+            transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        
+        .content-card:hover .card-image {
+            transform: scale(1.05);
+        }
+
+        .card-content {
+            padding: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .card-category {
+            font-size: 12px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-description {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-date {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border-color);
+            border-top: 2px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background-color: #ffffff;
+            margin: 5% auto;
+            padding: 40px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .close {
+            color: var(--text-light);
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+        
+        .close:hover {
+            color: var(--text-primary);
+        }
+        
+        .modal-form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: flex-end;
+        }
+        
+        .modal-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .modal-btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .modal-btn-primary:hover {
+            background: #333;
+        }
+        
+        .modal-btn-danger {
+            background: #ff3b30;
+            color: white;
+        }
+        
+        .modal-btn-danger:hover {
+            background: #e02d22;
+        }
+        
+        .modal-btn-secondary {
+            background: #f8f8f8;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .modal-btn-secondary:hover {
+            background: #e8e8e8;
+        }
+        
+        .modal-upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #fafafa;
+        }
+        
+        .modal-upload-area:hover {
+            border-color: var(--accent-color);
+            background: #f0f0f0;
+        }
+        
+        .current-image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 16px;
+            }
+            
+            .header h1 {
+                font-size: 32px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .image-upload {
+                grid-column: span 1;
+            }
+            
+            .gallery {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-tabs {
+                gap: 24px;
+                flex-wrap: wrap;
+            }
+            
+            .gallery-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .floating-nav {
+                bottom: 12px;
+                left: 12px;
+                right: 12px;
+                transform: none;
+                padding: 6px 10px;
+                gap: 6px;
+            }
+            
+            .floating-nav-item {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            
+            .floating-nav-logo {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+            
+            .floating-nav-cta {
+                padding: 6px 16px;
+                font-size: 12px;
+            }
+        }
+
+        /* Animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+
+        /* Floating Navigation Bar */
+        .floating-nav {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(51, 51, 51, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1000;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .floating-nav-item {
+            padding: 8px 14px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .floating-nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .floating-nav-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        .floating-nav-logo {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            margin-right: 4px;
+        }
+
+        .floating-nav-cta {
+            background: rgba(255, 255, 255, 0.9);
+            color: #000;
+            padding: 8px 20px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            margin-left: 6px;
+        }
+
+        .floating-nav-cta:hover {
+            background: white;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Business Ideas</h1>
+            <p>AIと協力して生み出された革新的なビジネスアイデアとその実現への道筋を共有しています。</p>
+        </div>
+
+        <nav class="nav-tabs">
+            <a href="#gallery" class="nav-tab active">Gallery</a>
+            <a href="#upload" class="nav-tab">Submit</a>
+            <a href="#collections" class="nav-tab">Collections</a>
+            <a href="#directory" class="nav-tab">Directory</a>
+        </nav>
+
+        <div class="upload-section" id="upload-section">
+            <h2>新しいビジネスアイデアを投稿</h2>
+            <p class="subtitle">あなたのAIと共創したビジネスアイデアを共有して、他のクリエイターにインスピレーションを与えましょう。</p>
+            
+            <form id="contentForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="title">ビジネス名</label>
+                        <input type="text" id="title" name="title" required placeholder="ビジネスアイデアのタイトルを入力">
+                    </div>
+                    <div class="form-group">
+                        <label for="url">プロジェクトURL（任意）</label>
+                        <input type="url" id="url" name="url" placeholder="https://example.com（省略可能）">
+                    </div>
+                    <div class="form-group">
+                        <label for="description">説明</label>
+                        <textarea id="description" name="description" rows="4" required placeholder="ビジネスアイデアの詳細な説明を入力してください"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="backMessage">裏面メッセージ</label>
+                        <textarea id="backMessage" name="backMessage" rows="4" required placeholder="カードの裏面に表示されるメッセージ（詳細情報、実現方法など）"></textarea>
+                    </div>
+                    <div class="form-group image-upload">
+                        <label for="image">サムネイル画像（任意）</label>
+                        <div class="upload-area" id="uploadArea">
+                            <p>画像をドラッグ&ドロップするか、クリックして選択してください<br><small>※画像がない場合はプレースホルダーが表示されます</small></p>
+                            <input type="file" id="image" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn">Submit Idea</button>
+            </form>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>アップロード中...</p>
+        </div>
+
+        <div class="gallery-header">
+            <div>
+                <h2 class="gallery-title" id="galleryTitle">Latest</h2>
+                <p class="gallery-subtitle" id="gallerySubtitle">最新のAIビジネスアイデアを探索する</p>
+            </div>
+        </div>
+
+        <div class="gallery" id="gallery">
+            <!-- コンテンツカードがここに動的に追加されます -->
+        </div>
+        
+        <div class="edit-gallery" id="editGallery" style="display: none;">
+            <!-- 編集用のコンパクトなギャラリーがここに表示されます -->
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">ビジネスアイデアを編集</h3>
+                <span class="close" id="closeModal">&times;</span>
+            </div>
+            <form id="editForm">
+                <input type="hidden" id="editContentId">
+                <div class="modal-form-grid">
+                    <div class="form-group">
+                        <label for="editTitle">ビジネス名</label>
+                        <input type="text" id="editTitle" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUrl">プロジェクトURL（任意）</label>
+                        <input type="url" id="editUrl" name="url" placeholder="https://example.com（省略可能）">
+                    </div>
+                    <div class="form-group">
+                        <label for="editDescription">説明</label>
+                        <textarea id="editDescription" name="description" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="editBackMessage">裏面メッセージ</label>
+                        <textarea id="editBackMessage" name="backMessage" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="editImage">サムネイル画像（任意）</label>
+                        <div class="modal-upload-area" id="editUploadArea">
+                            <p>新しい画像をアップロードする場合はクリックしてください<br><small>※削除する場合は画像なしで更新してください</small></p>
+                            <input type="file" id="editImage" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="modal-btn modal-btn-secondary" id="cancelEdit">キャンセル</button>
+                    <button type="button" class="modal-btn modal-btn-danger" id="deleteContent">削除</button>
+                    <button type="submit" class="modal-btn modal-btn-primary">更新</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Floating Navigation -->
+    <nav class="floating-nav">
+        <div class="floating-nav-logo">W.</div>
+        <a href="index.html" class="floating-nav-item">Gallery</a>
+        <a href="business-ideas.html" class="floating-nav-item active">Business Ideas</a>
+        <a href="#collections" class="floating-nav-item">Collections</a>
+        <a href="#directory" class="floating-nav-item">Directory</a>
+        <a href="#market" class="floating-nav-item">Market</a>
+        <a href="#submit" class="floating-nav-cta">Visit</a>
+    </nav>
+
+    <script>
+        // Supabase設定
+        const SUPABASE_URL = 'https://qmdjelrbvfskqdisthrn.supabase.co'
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtZGplbHJidmZza3FkaXN0aHJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4ODk1OTksImV4cCI6MjA2NTQ2NTU5OX0.StEGkVLEGHHNjsmubOdE182yPf-UZGjdpQ_CBr6zGYg'
+        
+        let supabase = null;
+        
+        // Supabase初期化関数
+        function initSupabase(url, key) {
+            supabase = window.supabase.createClient(url, key);
+        }
+
+        // DOM要素
+        const form = document.getElementById('contentForm');
+        const gallery = document.getElementById('gallery');
+        const editGallery = document.getElementById('editGallery');
+        const loading = document.getElementById('loading');
+        const uploadArea = document.getElementById('uploadArea');
+        const imageInput = document.getElementById('image');
+        const navTabs = document.querySelectorAll('.nav-tab');
+        const uploadSection = document.getElementById('upload-section');
+        const editModal = document.getElementById('editModal');
+        const editForm = document.getElementById('editForm');
+        const editUploadArea = document.getElementById('editUploadArea');
+        const editImageInput = document.getElementById('editImage');
+
+        // Navigation handling
+        navTabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Remove active class from all tabs
+                navTabs.forEach(t => t.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Show/hide sections based on tab
+                if (tab.getAttribute('href') === '#upload') {
+                    uploadSection.style.display = 'block';
+                    gallery.style.display = 'none';
+                    editGallery.style.display = 'grid';
+                    document.getElementById('galleryTitle').textContent = 'Your Ideas';
+                    document.getElementById('gallerySubtitle').textContent = '投稿済みのビジネスアイデアを管理・編集する';
+                    loadEditGallery();
+                } else {
+                    uploadSection.style.display = 'none';
+                    gallery.style.display = 'grid';
+                    editGallery.style.display = 'none';
+                    document.getElementById('galleryTitle').textContent = 'Latest';
+                    document.getElementById('gallerySubtitle').textContent = '最新のAIビジネスアイデアを探索する';
+                }
+            });
+        });
+
+        // Initially hide upload section and edit gallery
+        uploadSection.style.display = 'none';
+        editGallery.style.display = 'none';
+
+        // ドラッグ&ドロップ機能
+        uploadArea.addEventListener('click', () => imageInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                imageInput.files = files;
+                updateUploadArea(files[0]);
+            }
+        });
+
+        imageInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                updateUploadArea(e.target.files[0]);
+            }
+        });
+
+        function updateUploadArea(file) {
+            uploadArea.innerHTML = `<p>選択済み: ${file.name}</p>`;
+        }
+
+        // フォーム送信（新規追加のみ）
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!supabase) {
+                alert('Supabaseが設定されていません。管理者にお問い合わせください。');
+                return;
+            }
+
+            const formData = new FormData(e.target);
+            const title = formData.get('title');
+            const url = formData.get('url');
+            const description = formData.get('description');
+            const backMessage = formData.get('backMessage');
+            const image = imageInput.files[0];
+            
+            // 画像は必須ではない
+
+            loading.style.display = 'block';
+
+            try {
+                let thumbnailUrl = null;
+                
+                // 画像がアップロードされている場合のみ処理
+                if (image) {
+                    // 画像をリサイズ
+                    const resizedImage = await resizeImage(image, 800, 600, 0.8);
+                    
+                    // 画像をSupabase Storageにアップロード（ファイル名を英数字のみに変更）
+                    const fileExtension = image.name.split('.').pop();
+                    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExtension}`;
+                    const { data: uploadData, error: uploadError } = await supabase.storage
+                        .from('thumbnails')
+                        .upload(fileName, resizedImage);
+
+                    if (uploadError) throw uploadError;
+
+                    // 画像のパブリックURLを取得
+                    const { data: urlData } = supabase.storage
+                        .from('thumbnails')
+                        .getPublicUrl(fileName);
+                        
+                    thumbnailUrl = urlData.publicUrl;
+                }
+
+                // データベースにコンテンツ情報を保存
+                const { data, error } = await supabase
+                    .from('business_ideas')
+                    .insert([
+                        {
+                            title,
+                            url: url || null,
+                            description,
+                            back_message: backMessage,
+                            thumbnail_url: thumbnailUrl,
+                            created_at: new Date().toISOString()
+                        }
+                    ])
+                    .select();
+
+                if (error) throw error;
+
+                // フォームをリセット
+                form.reset();
+                uploadArea.innerHTML = '<p>画像をドラッグ&ドロップするか、クリックして選択してください<br><small>※画像がない場合はプレースホルダーが表示されます</small></p>';
+                
+                // ギャラリーを更新
+                loadContents();
+                loadEditGallery();
+                
+                // ギャラリータブに切り替え
+                navTabs.forEach(t => t.classList.remove('active'));
+                document.querySelector('a[href="#gallery"]').classList.add('active');
+                uploadSection.style.display = 'none';
+                gallery.style.display = 'grid';
+                editGallery.style.display = 'none';
+                document.getElementById('galleryTitle').textContent = 'Latest';
+                document.getElementById('gallerySubtitle').textContent = '最新のAIビジネスアイデアを探索する';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('エラーが発生しました: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+
+        // コンテンツ読み込み
+        async function loadContents() {
+            if (!supabase) return;
+
+            try {
+                const { data, error } = await supabase
+                    .from('business_ideas')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                displayContents(data);
+            } catch (error) {
+                console.error('Error loading contents:', error);
+            }
+        }
+
+        // コンテンツ表示
+        function displayContents(contents) {
+            gallery.innerHTML = '';
+            
+            contents.forEach((content, index) => {
+                const date = new Date(content.created_at).toLocaleDateString('ja-JP', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+                
+                const card = document.createElement('div');
+                card.className = `content-card fade-in stagger-${(index % 3) + 1}`;
+                const imageContent = content.thumbnail_url ? 
+                    `<img src="${content.thumbnail_url}" alt="${content.title}" class="card-image" onerror="this.style.background='#f5f5f5'; this.style.display='block';">` :
+                    `<div class="card-image no-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px;">●</div>`;
+                
+                card.innerHTML = `
+                    <div class="card-face">
+                        ${imageContent}
+                        <div class="card-content">
+                            <div class="card-header">
+                                <div>
+                                    <h3 class="card-title">${content.title}</h3>
+                                    <div class="card-category">BUSINESS IDEA</div>
+                                </div>
+                            </div>
+                            <p class="card-description">${content.description}</p>
+                            <div class="card-footer">
+                                <div class="card-date">${date}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-face card-back">
+                        <div class="back-icon">●</div>
+                        <h3>${content.title}</h3>
+                        <p>${content.back_message || 'このビジネスアイデアの詳細情報はまだ追加されていません。'}</p>
+                    </div>
+                `;
+                
+                // Add click handler for card flip
+                card.addEventListener('click', () => {
+                    card.classList.toggle('flipped');
+                });
+                
+                gallery.appendChild(card);
+            });
+        }
+
+        // 編集用ギャラリーを読み込む
+        async function loadEditGallery() {
+            if (!supabase) return;
+
+            try {
+                const { data, error } = await supabase
+                    .from('business_ideas')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                displayEditGallery(data);
+            } catch (error) {
+                console.error('Error loading edit gallery:', error);
+            }
+        }
+
+        // 編集用ギャラリー表示
+        function displayEditGallery(contents) {
+            editGallery.innerHTML = '';
+            
+            contents.forEach((content) => {
+                const card = document.createElement('div');
+                card.className = 'edit-card';
+                const imageContent = content.thumbnail_url ? 
+                    `<img src="${content.thumbnail_url}" alt="${content.title}" class="edit-card-image" onerror="this.style.background='#f5f5f5'; this.style.display='block';">` :
+                    `<div class="edit-card-image no-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">●</div>`;
+                
+                card.innerHTML = `
+                    ${imageContent}
+                    <div class="edit-card-content">
+                        <h3 class="edit-card-title">${content.title}</h3>
+                    </div>
+                `;
+                
+                // カードクリックでモーダルを開く
+                card.addEventListener('click', () => {
+                    openEditModal(content);
+                });
+                
+                editGallery.appendChild(card);
+            });
+        }
+
+        // 編集モーダルを開く
+        function openEditModal(content) {
+            document.getElementById('editContentId').value = content.id;
+            document.getElementById('editTitle').value = content.title;
+            document.getElementById('editUrl').value = content.url;
+            document.getElementById('editDescription').value = content.description;
+            document.getElementById('editBackMessage').value = content.back_message || '';
+            
+            // 現在の画像を表示
+            editUploadArea.innerHTML = `
+                <img src="${content.thumbnail_url}" alt="${content.title}" class="current-image-preview">
+                <p>新しい画像をアップロードする場合はクリックしてください</p>
+            `;
+            
+            editModal.style.display = 'block';
+        }
+
+        // モーダル関連のイベントリスナー
+        document.getElementById('closeModal').addEventListener('click', () => {
+            editModal.style.display = 'none';
+        });
+
+        document.getElementById('cancelEdit').addEventListener('click', () => {
+            editModal.style.display = 'none';
+        });
+
+        // モーダル外クリックで閉じる
+        window.addEventListener('click', (e) => {
+            if (e.target === editModal) {
+                editModal.style.display = 'none';
+            }
+        });
+
+        // 編集フォーム用の画像アップロード
+        editUploadArea.addEventListener('click', () => editImageInput.click());
+        editImageInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                editUploadArea.innerHTML = `
+                    <p>選択済み: ${file.name}</p>
+                    <p style="font-size: 12px; color: var(--text-light); margin-top: 8px;">更新時に新しい画像がアップロードされます</p>
+                `;
+            }
+        });
+
+        // 削除ボタン
+        document.getElementById('deleteContent').addEventListener('click', async () => {
+            const contentId = document.getElementById('editContentId').value;
+            
+            if (!confirm('このビジネスアイデアを削除してもよろしいですか？この操作は元に戻せません。')) {
+                return;
+            }
+            
+            loading.style.display = 'block';
+            
+            try {
+                const { error } = await supabase
+                    .from('business_ideas')
+                    .delete()
+                    .eq('id', contentId);
+                
+                if (error) throw error;
+                
+                editModal.style.display = 'none';
+                loadEditGallery();
+                loadContents();
+                
+                alert('ビジネスアイデアが削除されました。');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('削除中にエラーが発生しました: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+
+        // 編集フォーム送信
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const contentId = document.getElementById('editContentId').value;
+            const title = document.getElementById('editTitle').value;
+            const url = document.getElementById('editUrl').value;
+            const description = document.getElementById('editDescription').value;
+            const backMessage = document.getElementById('editBackMessage').value;
+            const image = editImageInput.files[0];
+            
+            loading.style.display = 'block';
+
+            try {
+                let thumbnailUrl;
+                
+                // 新しい画像がアップロードされた場合
+                if (image) {
+                    const resizedImage = await resizeImage(image, 800, 600, 0.8);
+                    const fileExtension = image.name.split('.').pop();
+                    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExtension}`;
+                    
+                    const { data: uploadData, error: uploadError } = await supabase.storage
+                        .from('thumbnails')
+                        .upload(fileName, resizedImage);
+
+                    if (uploadError) throw uploadError;
+
+                    const { data: urlData } = supabase.storage
+                        .from('thumbnails')
+                        .getPublicUrl(fileName);
+                        
+                    thumbnailUrl = urlData.publicUrl;
+                }
+                
+                const updateData = { title, url, description, back_message: backMessage };
+                if (thumbnailUrl) {
+                    updateData.thumbnail_url = thumbnailUrl;
+                }
+                
+                const { data, error } = await supabase
+                    .from('business_ideas')
+                    .update(updateData)
+                    .eq('id', contentId)
+                    .select();
+
+                if (error) throw error;
+
+                editModal.style.display = 'none';
+                loadEditGallery();
+                loadContents();
+                
+                alert('ビジネスアイデアが更新されました。');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('更新中にエラーが発生しました: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+
+        // 画像リサイズ関数
+        function resizeImage(file, maxWidth, maxHeight, quality) {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                
+                img.onload = function() {
+                    // アスペクト比を保持してリサイズ
+                    let { width, height } = img;
+                    
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height = (height * maxWidth) / width;
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width = (width * maxHeight) / height;
+                            height = maxHeight;
+                        }
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    // 画像を描画
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // Blobとして出力
+                    canvas.toBlob(resolve, 'image/jpeg', quality);
+                };
+                
+                img.src = URL.createObjectURL(file);
+            });
+        }
+
+        // ページ読み込み時の処理
+        document.addEventListener('DOMContentLoaded', () => {
+            // Supabase初期化
+            initSupabase(SUPABASE_URL, SUPABASE_KEY);
+            
+            // business_ideasテーブルが存在しない場合は作成
+            async function setupDatabase() {
+                try {
+                    // テーブルが存在するか確認
+                    const { data, error } = await supabase
+                        .from('business_ideas')
+                        .select('id')
+                        .limit(1);
+                    
+                    if (error && error.code === '42P01') {
+                        // テーブルが存在しない場合は管理者に通知
+                        console.error('business_ideas table does not exist');
+                        // 実際のアプリケーションではここでRLSポリシーなども設定すべき
+                    } else {
+                        // テーブルが存在する場合はコンテンツを読み込む
+                        loadContents();
+                    }
+                } catch (error) {
+                    console.error('Error checking database:', error);
+                }
+            }
+            
+            setupDatabase();
+        });
+    </script>
+</body>
+</html>
