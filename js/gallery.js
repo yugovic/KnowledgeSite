@@ -123,7 +123,19 @@ function displayContents(contents) {
 
 // 編集用ギャラリーを読み込む
 async function loadEditGallery() {
-    if (!supabase) return;
+    if (!supabase) {
+        console.error('Supabase is not initialized');
+        return;
+    }
+
+    const editGallery = document.getElementById('editGallery');
+    if (!editGallery) {
+        console.error('Edit gallery element not found');
+        return;
+    }
+
+    // ローディング表示
+    editGallery.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">読み込み中...</div>';
 
     try {
         let tableName = 'contents'; // デフォルト
@@ -140,15 +152,25 @@ async function loadEditGallery() {
 
         if (error) throw error;
 
-        displayEditGallery(data);
+        if (data && data.length > 0) {
+            displayEditGallery(data);
+        } else {
+            editGallery.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">投稿されたコンテンツがありません。</div>';
+        }
     } catch (error) {
         console.error('Error loading edit gallery:', error);
+        editGallery.innerHTML = '<div style="text-align: center; padding: 40px; color: #ff0000;">エラーが発生しました。再度お試しください。</div>';
     }
 }
 
 // 編集用ギャラリー表示
 function displayEditGallery(contents) {
     const editGallery = document.getElementById('editGallery');
+    if (!editGallery) {
+        console.error('Edit gallery element not found');
+        return;
+    }
+    
     editGallery.innerHTML = '';
     
     contents.forEach((content) => {
@@ -163,16 +185,20 @@ function displayEditGallery(contents) {
             ${imageContent}
             <div class="edit-card-content">
                 <h3 class="edit-card-title">${content.title}</h3>
+                <p style="font-size: 11px; color: #999; margin-top: 4px;">クリックして編集</p>
             </div>
         `;
         
         // カードクリックでモーダルを開く
         card.addEventListener('click', () => {
+            console.log('Edit card clicked:', content.title);
             openEditModal(content);
         });
         
         editGallery.appendChild(card);
     });
+    
+    console.log(`Displayed ${contents.length} items in edit gallery`);
 }
 
 // GSAPを使ったカードフリップ関数
