@@ -309,7 +309,24 @@ function createProfileSection() {
                             </div>
                         </div>
                         
+                        <!-- Claude Code Analysis Section -->
                         <div class="bio-section fade-in stagger-4">
+                            <h2>Claude Code Analysis</h2>
+                            <div class="claude-analysis-container">
+                                <button class="analyze-btn" onclick="showClaudeAnalysis()">
+                                    <span class="analyze-icon">🤖</span>
+                                    <span>Claude Codeの使用状況を分析</span>
+                                </button>
+                                <div id="claude-analysis-result" style="display: none;">
+                                    <div class="analysis-loading">
+                                        <div class="spinner"></div>
+                                        <p>JSONLファイルをアップロードしてください...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bio-section fade-in stagger-5">
                             <h2>Connect</h2>
                             <div class="connect-links">
                                 <a href="#" class="connect-link">Twitter</a>
@@ -325,4 +342,233 @@ function createProfileSection() {
     `;
     
     document.body.appendChild(profileSection);
+    
+    // Add Claude Analysis styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .claude-analysis-container {
+            margin-top: 20px;
+        }
+        
+        .analyze-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 auto;
+        }
+        
+        .analyze-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+        }
+        
+        .analyze-icon {
+            font-size: 1.5em;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        .analysis-loading {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 3px solid #667eea;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .claude-stats {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .claude-nickname {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .claude-personality {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .claude-scores {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .score-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .score-bar {
+            flex: 1;
+            height: 10px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 1s ease;
+        }
+        
+        .file-upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .file-upload-area:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        .file-upload-area.dragover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #764ba2;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Show Claude Analysis
+window.showClaudeAnalysis = function() {
+    const resultDiv = document.getElementById('claude-analysis-result');
+    resultDiv.style.display = 'block';
+    
+    // Create file input
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.multiple = true;
+    fileInput.accept = '.jsonl';
+    fileInput.style.display = 'none';
+    
+    fileInput.addEventListener('change', handleClaudeFiles);
+    document.body.appendChild(fileInput);
+    fileInput.click();
+};
+
+// Handle Claude JSONL files
+async function handleClaudeFiles(event) {
+    const files = Array.from(event.target.files).filter(f => f.name.endsWith('.jsonl'));
+    
+    if (files.length === 0) {
+        alert('JSONLファイルを選択してください');
+        return;
+    }
+    
+    const resultDiv = document.getElementById('claude-analysis-result');
+    resultDiv.innerHTML = `
+        <div class="analysis-loading">
+            <div class="spinner"></div>
+            <p>分析中... ${files.length}個のファイルを処理しています</p>
+        </div>
+    `;
+    
+    // Load the analyzer script dynamically
+    const script = document.createElement('script');
+    script.src = 'js/claude-analyzer.js';
+    script.onload = async () => {
+        const analyzer = new ClaudeAnalyzer();
+        
+        // Process all files
+        for (const file of files) {
+            const content = await file.text();
+            analyzer.processJsonlData(content);
+        }
+        
+        // Get results
+        const results = analyzer.finalizeAnalysis();
+        
+        // Display results
+        resultDiv.innerHTML = `
+            <div class="claude-stats">
+                <div class="claude-nickname">
+                    <span style="font-size: 1.5em;">${results.emoji}</span>
+                    ${results.nickname}
+                </div>
+                <div class="claude-personality">${results.personality}</div>
+                
+                <div style="text-align: center; margin: 20px 0;">
+                    <p><strong>総メッセージ数:</strong> ${results.totalMessages}</p>
+                    <p><strong>ユーザーメッセージ:</strong> ${results.userMessages}</p>
+                </div>
+                
+                <div class="claude-scores">
+                    <div class="score-item">
+                        <span>😊 丁寧さ</span>
+                        <div class="score-bar">
+                            <div class="score-fill" style="width: ${results.politenessScore * 10}%"></div>
+                        </div>
+                    </div>
+                    <div class="score-item">
+                        <span>🔬 技術的</span>
+                        <div class="score-bar">
+                            <div class="score-fill" style="width: ${results.technicalnessScore * 10}%"></div>
+                        </div>
+                    </div>
+                    <div class="score-item">
+                        <span>🧘 我慢強さ</span>
+                        <div class="score-bar">
+                            <div class="score-fill" style="width: ${results.patienceScore * 10}%"></div>
+                        </div>
+                    </div>
+                    <div class="score-item">
+                        <span>🚀 好奇心</span>
+                        <div class="score-bar">
+                            <div class="score-fill" style="width: ${results.curiosityScore * 10}%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <a href="claude-summary-analyzer.html" target="_blank" style="color: #667eea;">
+                        詳細な分析を見る →
+                    </a>
+                </div>
+            </div>
+        `;
+    };
+    
+    document.head.appendChild(script);
 }

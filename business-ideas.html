@@ -687,8 +687,7 @@
         <nav class="nav-tabs">
             <a href="#gallery" class="nav-tab active">Gallery</a>
             <a href="#upload" class="nav-tab">Submit</a>
-            <a href="#collections" class="nav-tab">Collections</a>
-            <a href="#directory" class="nav-tab">Directory</a>
+            <a href="#edit" class="nav-tab">Edit</a>
         </nav>
 
         <div class="upload-section" id="upload-section">
@@ -841,8 +840,14 @@
                 if (tab.getAttribute('href') === '#upload') {
                     uploadSection.style.display = 'block';
                     gallery.style.display = 'none';
+                    editGallery.style.display = 'none';
+                    document.getElementById('galleryTitle').textContent = 'Submit';
+                    document.getElementById('gallerySubtitle').textContent = '新しいビジネスアイデアを投稿する';
+                } else if (tab.getAttribute('href') === '#edit') {
+                    uploadSection.style.display = 'none';
+                    gallery.style.display = 'none';
                     editGallery.style.display = 'grid';
-                    document.getElementById('galleryTitle').textContent = 'Your Ideas';
+                    document.getElementById('galleryTitle').textContent = 'Edit Your Ideas';
                     document.getElementById('gallerySubtitle').textContent = '投稿済みのビジネスアイデアを管理・編集する';
                     loadEditGallery();
                 } else {

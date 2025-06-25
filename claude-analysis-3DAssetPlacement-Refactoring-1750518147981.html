@@ -1,0 +1,473 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code ユーザー分析レポート</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #5a67d8;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-number {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .personality-section {
+            background: #f7fafc;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .score-bar {
+            margin: 20px 0;
+        }
+        
+        .score-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .score-track {
+            background: #e2e8f0;
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .score-fill {
+            background: linear-gradient(90deg, #48bb78 0%, #38a169 100%);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease-out;
+            position: relative;
+        }
+        
+        .keywords-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .keyword-tag {
+            background: #5a67d8;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .keyword-tag:hover {
+            background: #434190;
+            transform: scale(1.1);
+        }
+        
+        .communication-chart {
+            background: #f7fafc;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-bar {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+        }
+        
+        .chart-label {
+            width: 150px;
+            font-weight: 600;
+        }
+        
+        .chart-value {
+            flex: 1;
+            background: #e2e8f0;
+            height: 30px;
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .chart-fill {
+            background: linear-gradient(90deg, #9f7aea 0%, #805ad5 100%);
+            height: 100%;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .personality-result {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            margin-top: 40px;
+            font-size: 1.2em;
+            line-height: 1.8;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .personality-result h2 {
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        
+        .time-chart {
+            background: #f7fafc;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .time-bars {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 200px;
+            margin-top: 20px;
+        }
+        
+        .time-bar {
+            width: 30px;
+            background: linear-gradient(180deg, #4299e1 0%, #3182ce 100%);
+            border-radius: 5px 5px 0 0;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .time-bar:hover {
+            background: linear-gradient(180deg, #63b3ed 0%, #4299e1 100%);
+        }
+        
+        .time-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.8s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container fade-in">
+        <h1>🤖 Claude Code ユーザー分析レポート</h1>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">総メッセージ数</div>
+                <div class="stat-number">2,078</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">ユーザーメッセージ</div>
+                <div class="stat-number">1,218</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">アシスタント応答</div>
+                <div class="stat-number">1,886</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">平均応答率</div>
+                <div class="stat-number">1.5</div>
+            </div>
+        </div>
+        
+        <div class="personality-section">
+            <h2>🎯 性格スコア分析</h2>
+            
+      <div class="score-bar">
+        <div class="score-label">
+          <span>😊 丁寧さ</span>
+          <span>0.4/10</span>
+        </div>
+        <div class="score-track">
+          <div class="score-fill" style="width: 4.0476190476190474%; background: #f56565;"></div>
+        </div>
+      </div>
+    
+      <div class="score-bar">
+        <div class="score-label">
+          <span>🔬 技術的</span>
+          <span>0.2/10</span>
+        </div>
+        <div class="score-track">
+          <div class="score-fill" style="width: 2.4917898193760264%; background: #4299e1;"></div>
+        </div>
+      </div>
+    
+      <div class="score-bar">
+        <div class="score-label">
+          <span>🧘 我慢強さ</span>
+          <span>0.2/10</span>
+        </div>
+        <div class="score-track">
+          <div class="score-fill" style="width: 2.044334975369458%; background: #48bb78;"></div>
+        </div>
+      </div>
+    
+      <div class="score-bar">
+        <div class="score-label">
+          <span>🚀 好奇心</span>
+          <span>0.2/10</span>
+        </div>
+        <div class="score-track">
+          <div class="score-fill" style="width: 1.683087027914614%; background: #ed8936;"></div>
+        </div>
+      </div>
+    
+      <div class="score-bar">
+        <div class="score-label">
+          <span>🤝 協調性</span>
+          <span>0.0/10</span>
+        </div>
+        <div class="score-track">
+          <div class="score-fill" style="width: 0.19704433497536947%; background: #9f7aea;"></div>
+        </div>
+      </div>
+    
+      <div class="score-bar">
+        <div class="score-label">
+          <span>❤️ 感情表現</span>
+          <span>0.1/10</span>
+        </div>
+        <div class="score-track">
+          <div class="score-fill" style="width: 0.755336617405583%; background: #f687b3;"></div>
+        </div>
+      </div>
+    
+        </div>
+        
+        <div class="communication-chart">
+            <h2>🗣️ コミュニケーションスタイル</h2>
+            
+        <div class="chart-bar">
+          <div class="chart-label">直接的なコマンド</div>
+          <div class="chart-value">
+            <div class="chart-fill" style="width: 46.15384615384615%;">
+              78回
+            </div>
+          </div>
+        </div>
+      
+        <div class="chart-bar">
+          <div class="chart-label">質問</div>
+          <div class="chart-value">
+            <div class="chart-fill" style="width: 28.402366863905325%;">
+              48回
+            </div>
+          </div>
+        </div>
+      
+        <div class="chart-bar">
+          <div class="chart-label">フィードバック</div>
+          <div class="chart-value">
+            <div class="chart-fill" style="width: 7.6923076923076925%;">
+              13回
+            </div>
+          </div>
+        </div>
+      
+        <div class="chart-bar">
+          <div class="chart-label">感謝の表現</div>
+          <div class="chart-value">
+            <div class="chart-fill" style="width: 1.7751479289940828%;">
+              3回
+            </div>
+          </div>
+        </div>
+      
+        <div class="chart-bar">
+          <div class="chart-label">修正指示</div>
+          <div class="chart-value">
+            <div class="chart-fill" style="width: 15.976331360946746%;">
+              27回
+            </div>
+          </div>
+        </div>
+      
+        </div>
+        
+        <div class="keywords-cloud">
+            <h2 style="width: 100%; margin-bottom: 20px;">📝 よく使う言葉</h2>
+            <span class="keyword-tag" style="font-size: 24px;">to (157)</span><span class="keyword-tag" style="font-size: 23.85450737031441px;">and (138)</span><span class="keyword-tag" style="font-size: 23.672563813902954px;">the (126)</span><span class="keyword-tag" style="font-size: 23.640563131210072px;">anonymous (124)</span><span class="keyword-tag" style="font-size: 23.50718038221273px;">mesh (116)</span><span class="keyword-tag" style="font-size: 23.36426245424844px;">interactionmanager (108)</span><span class="keyword-tag" style="font-size: 23.107753783201083px;">for (95)</span><span class="keyword-tag" style="font-size: 23.086589564540006px;">false (94)</span><span class="keyword-tag" style="font-size: 23.04357715409808px;">assetplacer (92)</span><span class="keyword-tag" style="font-size: 23.0217190130337px;">with (91)</span><span class="keyword-tag" style="font-size: 22.97727273946428px;">at (89)</span><span class="keyword-tag" style="font-size: 22.908694592507015px;">scenemanager (86)</span><span class="keyword-tag" style="font-size: 22.837681215593197px;">scene (83)</span><span class="keyword-tag" style="font-size: 22.78889830934488px;">vehiclemanager (81)</span><span class="keyword-tag" style="font-size: 22.60813018640834px;">this (74)</span><span class="keyword-tag" style="font-size: 22.60813018640834px;">roommanager (74)</span><span class="keyword-tag" style="font-size: 22.439015410352212px;">js (68)</span><span class="keyword-tag" style="font-size: 22.40938523878193px;">error (67)</span><span class="keyword-tag" style="font-size: 22.348774539791272px;">asset (65)</span><span class="keyword-tag" style="font-size: 22.155074887811438px;">from (59)</span>
+        </div>
+        
+        <div class="time-chart">
+            <h2>⏰ 活動時間帯</h2>
+            <div class="time-bars">
+          <div class="time-bar" style="height: 83.33333333333334%;" title="0時: 20回">
+            <div class="time-label">0時</div>
+          </div>
+        
+          <div class="time-bar" style="height: 83.33333333333334%;" title="1時: 20回">
+            <div class="time-label">1時</div>
+          </div>
+        
+          <div class="time-bar" style="height: 29.166666666666668%;" title="2時: 7回">
+            <div class="time-label">2時</div>
+          </div>
+        
+          <div class="time-bar" style="height: 100%;" title="3時: 24回">
+            <div class="time-label">3時</div>
+          </div>
+        
+          <div class="time-bar" style="height: 100%;" title="4時: 24回">
+            <div class="time-label">4時</div>
+          </div>
+        
+          <div class="time-bar" style="height: 16.666666666666664%;" title="5時: 4回">
+            <div class="time-label">5時</div>
+          </div>
+        
+          <div class="time-bar" style="height: 41.66666666666667%;" title="10時: 10回">
+            <div class="time-label">10時</div>
+          </div>
+        
+          <div class="time-bar" style="height: 37.5%;" title="11時: 9回">
+            <div class="time-label">11時</div>
+          </div>
+        
+          <div class="time-bar" style="height: 12.5%;" title="13時: 3回">
+            <div class="time-label">13時</div>
+          </div>
+        
+          <div class="time-bar" style="height: 58.333333333333336%;" title="14時: 14回">
+            <div class="time-label">14時</div>
+          </div>
+        
+          <div class="time-bar" style="height: 12.5%;" title="16時: 3回">
+            <div class="time-label">16時</div>
+          </div>
+        
+          <div class="time-bar" style="height: 8.333333333333332%;" title="20時: 2回">
+            <div class="time-label">20時</div>
+          </div>
+        
+          <div class="time-bar" style="height: 91.66666666666666%;" title="21時: 22回">
+            <div class="time-label">21時</div>
+          </div>
+        
+          <div class="time-bar" style="height: 25%;" title="22時: 6回">
+            <div class="time-label">22時</div>
+          </div>
+        
+          <div class="time-bar" style="height: 70.83333333333334%;" title="23時: 17回">
+            <div class="time-label">23時</div>
+          </div>
+        </div>
+        </div>
+        
+        <div class="personality-result">
+            <h2>🎭 総合的な印象</h2>
+            🎭 総合的な印象:<br><br>⚡ 非常に効率重視で、直接的なコミュニケーションを好む方です。<br>
+        </div>
+    </div>
+    
+    <script>
+        // アニメーション効果
+        document.addEventListener('DOMContentLoaded', () => {
+            // スコアバーのアニメーション
+            document.querySelectorAll('.score-fill').forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 100);
+            });
+            
+            // チャートのアニメーション
+            document.querySelectorAll('.chart-fill').forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 300);
+            });
+        });
+    </script>
+</body>
+</html>
+    

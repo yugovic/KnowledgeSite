@@ -116,4 +116,9 @@ Both pages require Supabase configuration with hardcoded credentials in JavaScri
 - **Transitions**: Smooth hover effects and modal animations
 - **3D Effects**: Card flip animations with CSS transforms
 
+## Translation and Conversation Memories
+
+- **Translation Request**: Actual conversation samples requested
+  - 1. Interest in obtaining 20 real conversation samples for translation purposes
+
 When working on this project, focus on maintaining the Japanese language interface and the modern, clean design aesthetic. The codebase uses vanilla JavaScript with async/await patterns for Supabase operations.

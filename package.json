@@ -1,0 +1,37 @@
+{
+  "name": "claude-companion",
+  "version": "1.0.0",
+  "description": "Claude Codeのユーザー分析ツール - あなたとClaudeの特別な関係を可視化",
+  "main": "claude-companion.js",
+  "bin": {
+    "claude-companion": "./claude-companion.js",
+    "claude-analyze": "./analyze-user-advanced.js",
+    "claude-visual": "./analyze-visual-report.js"
+  },
+  "scripts": {
+    "analyze": "node claude-companion.js",
+    "dashboard": "node claude-companion.js --dashboard",
+    "visual": "node analyze-visual-report.js"
+  },
+  "keywords": [
+    "claude",
+    "ai",
+    "analysis",
+    "companion",
+    "personality",
+    "emotion",
+    "voice-detection"
+  ],
+  "author": "Claude Code User",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/claude-companion"
+  },
+  "homepage": "https://github.com/yourusername/claude-companion",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
