@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 各モジュールの初期化
     initAuthEvents();
     initNavigation();
+    initManageTabs();
     initUpload();
     initModalEvents();
     initFormEvents();

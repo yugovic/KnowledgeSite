@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
+    <div class="version-info">v1.0.2</div>
     <div class="container">
         <!-- Header -->
         <div class="header" id="main-header">
@@ -28,13 +29,17 @@
         <!-- Navigation -->
         <nav class="nav-tabs">
             <a href="#gallery" class="nav-tab active">Gallery</a>
-            <a href="#collections" class="nav-tab">Collections</a>
-            <a href="#directory" class="nav-tab">Directory</a>
-            <a href="#upload" class="nav-tab" id="submit-tab">Submit</a>
+            <a href="#manage" class="nav-tab" id="manage-tab">Submit / Edit</a>
         </nav>
 
-        <!-- Upload Section -->
-        <div class="upload-section" id="upload-section" style="display: none;">
+        <!-- Manage Section -->
+        <div class="manage-section" id="manage-section" style="display: none;">
+            <div class="manage-tabs">
+                <button class="manage-tab active" data-tab="submit">新規投稿</button>
+                <button class="manage-tab" data-tab="edit">編集</button>
+            </div>
+            
+            <div class="tab-content" id="submit-content">
             <h2>新しいコンテンツを投稿</h2>
             <p class="subtitle">あなたのAI作品を共有して、他のクリエイターにインスピレーションを与えましょう。</p>
             
@@ -74,6 +79,15 @@
                 </div>
                 <button type="submit" class="submit-btn">投稿する</button>
             </form>
+            </div>
+            
+            <div class="tab-content" id="edit-content" style="display: none;">
+                <h2>投稿済みのコンテンツを編集</h2>
+                <p class="subtitle">過去に投稿したコンテンツを選択して編集・削除できます。</p>
+                <div class="edit-gallery" id="editGallery">
+                    <!-- 編集用のギャラリーがここに表示されます -->
+                </div>
+            </div>
         </div>
 
         <!-- Loading -->

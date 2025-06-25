@@ -7,6 +7,8 @@ function navigateToPage(targetPage) {
         switchToCollectionsPage();
     } else if (targetPage === 'directory') {
         switchToDirectoryPage();
+    } else if (targetPage === 'manage') {
+        switchToManagePage();
     }
 }
 
@@ -68,6 +70,59 @@ function switchToDirectoryPage() {
     // ヘッダーは変更しない - メインページのヘッダーを保持
 }
 
+function switchToManagePage() {
+    const manageSection = document.getElementById('manage-section');
+    const gallery = document.getElementById('gallery');
+    const galleryHeader = document.querySelector('.gallery-header');
+    
+    if (gallery) gallery.style.display = 'none';
+    if (galleryHeader) galleryHeader.style.display = 'none';
+    if (manageSection) manageSection.style.display = 'block';
+    
+    // タブの状態を更新
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    const manageTab = document.querySelector('a[href="#manage"]');
+    if (manageTab) manageTab.classList.add('active');
+    
+    // ヘッダーを更新
+    document.getElementById('page-title').textContent = 'Manage Content';
+    document.getElementById('page-description').textContent = 'コンテンツの投稿・編集・削除を行います。';
+    
+    // 編集タブがアクティブな場合は編集ギャラリーをロード
+    const editTab = document.querySelector('.manage-tab[data-tab="edit"]');
+    if (editTab && editTab.classList.contains('active')) {
+        loadEditGallery();
+    }
+}
+
+function initManageTabs() {
+    const manageTabs = document.querySelectorAll('.manage-tab');
+    const submitContent = document.getElementById('submit-content');
+    const editContent = document.getElementById('edit-content');
+    
+    manageTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active class from all manage tabs
+            manageTabs.forEach(t => t.classList.remove('active'));
+            
+            // Add active class to clicked tab
+            tab.classList.add('active');
+            
+            // Show/hide content based on tab
+            if (tab.dataset.tab === 'submit') {
+                if (submitContent) submitContent.style.display = 'block';
+                if (editContent) editContent.style.display = 'none';
+            } else if (tab.dataset.tab === 'edit') {
+                if (submitContent) submitContent.style.display = 'none';
+                if (editContent) editContent.style.display = 'block';
+                loadEditGallery();
+            }
+        });
+    });
+}
+
 function initNavigation() {
     // タブのクリック処理
     document.querySelectorAll('.nav-tab').forEach(tab => {
@@ -83,26 +138,14 @@ function initNavigation() {
                     t.classList.remove('active');
                 });
                 tab.classList.add('active');
-            } else {
-                // Gallery以外は認証が必要
+            } else if (href === '#manage') {
+                // Manage (Submit/Edit)タブは認証が必要
                 const isAuthenticated = await checkAuthStatus();
                 if (!isAuthenticated) {
-                    if (href === '#upload') {
-                        showAuthModal('upload');
-                    } else if (href === '#collections') {
-                        showAuthModal('collections');
-                    } else if (href === '#directory') {
-                        showAuthModal('directory');
-                    }
+                    showAuthModal('manage');
                 } else {
                     // 既に認証済みの場合
-                    if (href === '#upload') {
-                        switchToUploadPage();
-                    } else if (href === '#collections') {
-                        switchToCollectionsPage();
-                    } else if (href === '#directory') {
-                        switchToDirectoryPage();
-                    }
+                    switchToManagePage();
                 }
             }
         });
