@@ -27,7 +27,7 @@ function openEditModal(content) {
         `;
     }
     
-    editModal.style.display = 'block';
+    editModal.style.display = 'flex';
 }
 
 function initModalEvents() {
@@ -166,7 +166,13 @@ async function handleEditSubmit(e) {
             thumbnailUrl = urlData.publicUrl;
         }
         
-        const updateData = { title, url: url || null, category: category || null, description, back_message: backMessage || null };
+        const updateData = { 
+            title, 
+            url: url || null, 
+            category: category || null, 
+            description
+            // back_message: backMessage || null // Supabaseスキーマにカラムが存在しない場合はコメントアウト
+        };
         if (thumbnailUrl) {
             updateData.thumbnail_url = thumbnailUrl;
         }

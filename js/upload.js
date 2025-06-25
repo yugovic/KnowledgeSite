@@ -119,7 +119,7 @@ async function handleFormSubmit(e) {
             url: url || null,
             description,
             category: category || null,
-            back_message: backMessage || null,
+            // back_message: backMessage || null, // Supabaseスキーマにカラムが存在しない場合はコメントアウト
             thumbnail_url: thumbnailUrl,
             created_at: new Date().toISOString()
         };
